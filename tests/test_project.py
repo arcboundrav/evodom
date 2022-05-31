@@ -70,7 +70,6 @@ _VICTORY_AND_TREASURE = [
     Gold,
 ]
 
-
 ZONE_NAMES = [
     "HAND",
     "DECK",
@@ -79,7 +78,6 @@ ZONE_NAMES = [
     "PLAY",
 ]
 N_ZONES = len(ZONE_NAMES)
-
 
 N_PILES = 17
 N_COPPER = 60
