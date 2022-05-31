@@ -97,5 +97,5 @@ def play(simname):
     Load and play against the strongest strategies evolved under the keyword SIMNAME.
     """
     if validate_play_args(simname):
-        from evolvedominion.aux import play_game
+        from evolvedominion.play import play_game
         play_game(simname)
