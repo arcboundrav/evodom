@@ -110,7 +110,7 @@ class CacheManager(FileManager):
         if (CACHE is None):
             MODELMAKER = SimpleModelSpace()
             CACHE = MODELMAKER.create_cache(models=MODELMAKER.get_full_model_space())
-            self._try_to_save(CACHE)
+            self._try_to_save(CACHE, MODELSPACE_CACHE_FILENAME)
         return CACHE
 
 
