@@ -113,8 +113,8 @@ VERBS = {
     'swap_top_two_cards':["swap the top two cards", "swaps the top two cards"],
     'resolve_effects':["replay", "replays"],
     'resolve':["resolve", "resolves"],
-    'add_coin':["increase the number of available coins by",
-                "increases the number of available coins by"],
+    'add_coin':["increase your coins by",
+                "increases their coins by"],
 }
 
 COMMAND_HINTS = {
