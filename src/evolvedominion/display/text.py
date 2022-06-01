@@ -406,7 +406,9 @@ def represent_effect_kwargs(kwargs):
         if (kwarg != "actor"):
             if (kwarg == "pieces"):
                 result.append(represent_pieces(kwargs[kwarg]))
-            elif (kwarg not in ["source", "destination", "state", "is_buy"]):
+            #elif (kwarg == "piece"):
+            #    result.append(represent_pieces(kwargs[kwarg]))
+            elif (kwarg not in ["source", "destination", "state", "is_buy", "free"]):
                 result.append(kwargs[kwarg])
     return commas(result)
 
