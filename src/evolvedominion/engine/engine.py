@@ -435,12 +435,22 @@ class Process:
     preventing the main Subprocess encoding the attack itself from ever
     unfolding.
     """
-    __slots__ = "actor", "main_effect", "setup_effect", "teardown_effect"
-    def __init__(self, actor, main_effect, setup_effect=None, teardown_effect=None):
+    __slots__ = "actor", "main_effect", "setup_effect", "teardown_effect", "count", "max_count"
+    def __init__(self, actor, main_effect, setup_effect=None, teardown_effect=None, max_count=0):
         self.actor = actor
         self.main_effect = main_effect
         self.setup_effect = setup_effect
         self.teardown_effect = teardown_effect
+        self.count = 0
+        self.max_count = max_count
+
+    @property
+    def count_antecedent(self):
+        """
+        Support antecedents which factor in the number of iterations
+        performed relative to the maximum allowed.
+        """
+        return self.count < self.max_count
 
     @property
     def antecedent(self):
@@ -449,9 +459,13 @@ class Process:
     def clear_internal_state(self):
         """
         Used by Processes which depend on internal state to compute
-        the antecedent.
+        the antecedent; by default, calibrates the main loop counter.
         """
-        pass
+        self.count = 0
+
+    def increment_count(self):
+        """ Hook for Subprocesses to directly control the number of iterations. """
+        self.count = self.count + 1
 
     def setup(self, state):
         if (self.setup_effect is not None):
@@ -646,30 +660,38 @@ class ImmunityProcedure(Subprocess):
 
 class Attack(Process):
     """ Processes which check for victim immunity. """
-    __slots__ = "immunity", "flag"
-    def __init__(self, actor, main_effect, teardown_effect=None):
+    __slots__ = "immunity"
+    def __init__(self, actor, main_effect, teardown_effect=None, max_count=1):
         super().__init__(actor=actor,
                          main_effect=main_effect,
                          setup_effect=Initiate(actor, ImmunityProcedure(self)),
-                         teardown_effect=teardown_effect)
+                         teardown_effect=teardown_effect,
+                         max_count=max_count)
         self.immunity = False
-        self.flag = False
 
     def mark_immunity(self):
         self.immunity = True
 
     def clear_internal_state(self):
+        super().clear_internal_state()
         self.immunity = False
-        self.flag = False
-
-    def kill(self):
-        """ Support one-shot Attacks. """
-        self.flag = True
 
     @property
     def antecedent(self):
         """ Subclasses check a conjunction of this antecedent with their own. """
-        return not(self.immunity or self.flag)
+        return not(self.immunity)
+
+
+class OneshotAttack(Attack):
+    """
+    Processes which check for victim immunity and only force victims
+    to perform a procedure once.
+    """
+    __slots__ = tuple()
+    @property
+    def antecedent(self):
+        """ Not immune and yet to have performed the victim procedure. """
+        return super().antecedent and super().count_antecedent
 
 
 
@@ -895,7 +917,7 @@ class BureaucratProcedure(Subprocess):
     """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
-        signal = Update(self.process.kill)
+        signal = Update(self.process.increment_count)
         victory_cards = get_pieces(actor.HAND,
                                    unique=True,
                                    predicate=lambda x: x.is_victory)
@@ -916,13 +938,11 @@ class BureaucratProcedure(Subprocess):
         return choices
 
 
-class BureaucratAttack(Attack):
-    """ Uses flag to ensure victims only perform the routine once. """
+class BureaucratAttack(OneshotAttack):
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
                          main_effect=Initiate(actor, BureaucratProcedure(self)))
-
 
 class BureaucratChoices(Decision):
     __slots__ = tuple()
@@ -953,34 +973,48 @@ class MoneylenderChoices(Decision):
         return choices
 
 
-class PoacherProcedure(Decision):
+
+class PoacherProcedure(Subprocess):
     __slots__ = tuple()
     def generate_choices(self, state, actor):
+        signal = Update(self.process.increment_count)
+        choices = []
         discardables = get_pieces(actor.HAND, unique=True)
-        effects = [Effect(discard_piece, actor=actor, piece=card) for card in discardables]
-        return [Consequence(*effects)]
+        for discardable in discardables:
+            discard_effect = Effect(discard_piece, actor=actor, piece=discardable)
+            choices.append(Consequence(discard_effect, signal))
+        return choices
+
+
+class PoacherProcess(Process):
+    __slots__ = tuple()
+    def __init__(self, actor, max_count):
+        super().__init__(actor=actor,
+                         main_effect=Initiate(actor, PoacherProcedure(self)))
+                         setup_effect=None,
+                         teardown_effect=None,
+                         max_count=max_count)
+
+    @property
+    def antecedent(self):
+        """
+        At least one card left to discard and at least one card available.
+        """
+        assert super().count_antecedent and len(self.actor.HAND)
+
 
 
 class PoacherChoices(Decision):
     """
     Discard a card per empty Supply pile.
     """
-    __slots__ = "procedure"
-    def __init__(self):
-        super().__init__()
-        self.procedure = PoacherProcedure()
-
+    __slots__ = tuple()
     def generate_choices(self, state, actor):
         n_to_discard = state.n_empty_piles
-        n_to_discard = min(n_to_discard, len(actor.HAND))
+        n_to_discard = min(len(actor.HAND), n_to_discard)
         if not(n_to_discard):
             return [NullOption(actor)]
-        else:
-            consequence = Consequence()
-            for i in range(n_to_discard):
-                consequence.add(Initiate(actor, self.procedure))
-            return [consequence]
-
+        return [Consequence(PoacherProcess(actor=actor, max_count=n_to_discard))]
 
 class ThroneRoomChoices(Decision):
     """
@@ -1010,7 +1044,7 @@ class BanditProcedure(Subprocess):
         return piece.is_treasure and (repr(piece) != "Copper")
 
     def generate_choices(self, state, actor):
-        signal = Update(self.process.kill)
+        signal = Update(self.process.increment_count)
         prepare_deck(actor, n=2)
         if not(actor.DECK):
             option = NullOption(actor)
@@ -1076,7 +1110,7 @@ class BanditProcedure(Subprocess):
         return choices
 
 
-class BanditAttack(Attack):
+class BanditAttack(OneshotAttack):
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
@@ -1158,6 +1192,7 @@ class LibraryProcess(Process):
     LibraryProcedure so long as the preconditions hold.
     Afterwards, discard skipped cards using LibraryTeardown.
     """
+    __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
                          main_effect=Initiate(actor, LibraryProcedure(self)),
@@ -1175,6 +1210,7 @@ class LibraryProcess(Process):
 
 
 class LibraryChoices(Decision):
+    __slots__ = tuple()
     def generate_choices(self, state, actor):
         process = LibraryProcess(actor)
         if process.antecedent:
@@ -1232,7 +1268,7 @@ class WitchProcedure(Subprocess):
     """ Each other player gains a Curse. """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
-        signal = Update(self.process.kill)
+        signal = Update(self.process.increment_count)
         gainables = state.filter_supply(lambda x: repr(x) == "Curse")
         if gainables:
             option = Acquisition(Effect(gain, actor=actor, piece=gainables[0]),
@@ -1244,10 +1280,12 @@ class WitchProcedure(Subprocess):
 
 
 class WitchAttack(Attack):
+    """ Uses max_count to ensure the attack only happens once per Player. """
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
                          main_effect=Initiate(actor, WitchProcedure(self)))
+
 
 
 class WitchChoices(Decision):
