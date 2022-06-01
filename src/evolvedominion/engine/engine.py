@@ -719,7 +719,8 @@ class MineChoices(Decision):
                                                                piece=trashable),
                                                         Effect(gain,
                                                                actor=actor,
-                                                               piece=gainable)))
+                                                               piece=gainable,
+                                                               destination=actor.HAND)))
             else:
                 choices.append(Consequence(Effect(trash, actor=actor, piece=trashable)))
         return choices
