@@ -1,7 +1,7 @@
 from evolvedominion.params import GROUPSIZE
 from evolvedominion.utils import DATA_MANAGER
-from evolvedominion.actors.player import Player, EchoPlayer
-from evolvedominion.actors.strategy import (
+from evolvedominion.agents.player import Player, EchoPlayer
+from evolvedominion.agents.strategy import (
     Strategy,
     RandomStrategy,
     EchoStrategy,

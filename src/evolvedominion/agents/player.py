@@ -1,4 +1,4 @@
-from evolvedominion.actors.actor import Actor
+from evolvedominion.agents.agent import Agent
 from evolvedominion.display.text import (
     display_choices,
     parse_display_command,
@@ -9,7 +9,7 @@ from evolvedominion.display.text import (
 from evolvedominion.display.echo import Echo
 
 
-class Player(Actor):
+class Player(Agent):
     """
     Supports human players selecting options via text interface.
     QoL features: automatically choose single options, play

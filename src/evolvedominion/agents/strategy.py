@@ -2,7 +2,7 @@ import numpy as np
 
 from numba import njit
 from itertools import tee, filterfalse
-from evolvedominion.actors.actor import Actor
+from evolvedominion.agents.agent import Agent
 from evolvedominion.display.echo import Echo
 from evolvedominion.types import SMALL_INT, BOOL
 from evolvedominion.engine.combinatorics import (
@@ -111,7 +111,7 @@ def select_option_inverse(pmf, option_mask):
 
 
 
-class RandomStrategy(Actor):
+class RandomStrategy(Agent):
     """
     Useful for testing features outside of strategic selection,
     or for comparing evolved strategies against random play.
@@ -132,7 +132,7 @@ class EchoRandomStrategy(Echo, RandomStrategy):
         return "RNGStrategy {}".format(self.pid)
 
 
-class Strategy(Actor):
+class Strategy(Agent):
     """
     Vehicle for playing Dominion given the strategy encoded in an
     evolved Phenotype.

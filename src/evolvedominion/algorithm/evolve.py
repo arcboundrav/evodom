@@ -5,7 +5,7 @@ from time import perf_counter
 from multiprocessing import Pool
 
 from evolvedominion.utils import CACHE_MANAGER
-from evolvedominion.actors.strategy import Strategy
+from evolvedominion.agents.strategy import Strategy
 from evolvedominion.algorithm.tournaments import Seeding, Elimination
 from evolvedominion.params import (
     EPSILON,
