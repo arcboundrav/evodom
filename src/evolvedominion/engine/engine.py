@@ -238,7 +238,7 @@ def topdeck(state, actor, piece, source):
     transfer_piece(piece, destination=actor.DECK, source=source)
 
 
-def discard_piece(state, actor, piece, source=None):
+def discard(state, actor, piece, source=None):
     source = actor.HAND if (source is None) else source
     to_discard, to_keep = partition(lambda x: (x is piece), source)
     source.clear()
@@ -822,7 +822,7 @@ class MilitiaVictimProcedure(Subprocess):
         choices = []
         discardables = get_pieces(actor.HAND, unique=True)
         for discardable in discardables:
-            choices.append(Consequence(Effect(discard_piece,
+            choices.append(Consequence(Effect(discard,
                                               actor=actor,
                                               piece=discardable)))
         return choices
@@ -892,7 +892,7 @@ class VassalChoices(Decision):
         else:
             topcard = actor.DECK[-1]
             # The option of discarding the top card is always available.
-            choices.append(Consequence(Effect(discard_piece,
+            choices.append(Consequence(Effect(discard,
                                               actor=actor,
                                               piece=topcard,
                                               source=actor.DECK)))
@@ -981,7 +981,7 @@ class PoacherProcedure(Subprocess):
         choices = []
         discardables = get_pieces(actor.HAND, unique=True)
         for discardable in discardables:
-            discard_effect = Effect(discard_piece, actor=actor, piece=discardable)
+            discard_effect = Effect(discard, actor=actor, piece=discardable)
             choices.append(Consequence(discard_effect, signal))
         return choices
 
@@ -1055,7 +1055,7 @@ class BanditProcedure(Subprocess):
         decksize = len(actor.DECK)
         if (decksize == 1):
             topcard = actor.DECK[-1]
-            effect_function = trash if self.could_trash(topcard) else discard_piece
+            effect_function = trash if self.could_trash(topcard) else discard
             return [Consequence(Effect(reveal, actor=actor, piece=topcard),
                                 Effect(effect_function, actor=actor, piece=topcard, source=actor.DECK),
                                 signal)]
@@ -1078,7 +1078,7 @@ class BanditProcedure(Subprocess):
                                                       actor=actor,
                                                       piece=trashable,
                                                       source=actor.DECK),
-                                               Effect(discard_piece,
+                                               Effect(discard,
                                                       actor=actor,
                                                       piece=discardable,
                                                       source=actor.DECK),
@@ -1094,7 +1094,7 @@ class BanditProcedure(Subprocess):
                                                  source=actor.DECK))
                 if discardables:
                     discardable = discardables[0]
-                    consequence.add(Effect(discard_piece,
+                    consequence.add(Effect(discard,
                                            actor=actor,
                                            piece=discardable,
                                            source=actor.DECK))
@@ -1103,7 +1103,7 @@ class BanditProcedure(Subprocess):
             # Case: Nothing to trash, discard both pieces.
             else:
                 choices.append(Consequence(*reveal_effects,
-                                           Effect(discard_pieces,
+                                           Effect(discards,
                                                   actor=actor,
                                                   pieces=discardables,
                                                   source=actor.DECK),
@@ -1244,7 +1244,7 @@ class SentryChoices(Decision):
         topcards = [actor.DECK[-1]] if (decksize == 1) else [actor.DECK[-1], actor.DECK[-2]]
 
         # Do the same thing (trash or discard) to the topcard(s).
-        functions = [trash, discard_piece]
+        functions = [trash, discard]
         for function in functions:
             consequence = Consequence()
             for topcard in topcards:
@@ -1264,9 +1264,9 @@ class SentryChoices(Decision):
             for index_permutation in index_permutations:
                 trash_index, discard_index = index_permutation
                 choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK),
-                                           Effect(discard_piece, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
+                                           Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
                 choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK)))
-                choices.append(Consequence(Effect(discard_piece, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
+                choices.append(Consequence(Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
 
         return choices
 

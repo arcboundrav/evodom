@@ -2265,7 +2265,7 @@ def test_vassal_choices():
     assert len(choices) == 1
     choice = choices[0]
     effects = choice.effects
-    assert effects[0].function.__name__ == "discard_piece"
+    assert effects[0].function.__name__ == "discard"
 
     zone_data_t0 = extract_zone_data(state)
     validate_effects(state, choice.effects)
