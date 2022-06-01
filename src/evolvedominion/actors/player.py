@@ -31,7 +31,7 @@ class Player(Actor):
         return choices[int(response)]
 
     def peek(self, cards):
-        announce_drawn_cards(cards)
+        announce_drawn_cards(cards, self.n_turns_played)
 
     def __repr__(self):
         return "You"

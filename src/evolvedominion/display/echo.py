@@ -5,9 +5,8 @@ from evolvedominion.params import (
 )
 from evolvedominion.engine.session import Session
 from evolvedominion.display.text import (
-    announce_epoch_start,
-    announce_epoch_end,
     announce_event,
+    display_title,
     display_buffer_line,
 )
 
@@ -30,22 +29,22 @@ class EchoSession(Session):
     for human players.
     """
     def start_turn(self):
-        announce_epoch_start("Turn")
         super().start_turn()
+        if not(self.state.current_player_index):
+            display_title("Turn {}".format(self.state.current_player.n_turns_played))
 
     def action_phase(self):
-        announce_epoch_start(ACTION_PHASE)
+        display_title("{}".format(ACTION_PHASE))
         super().action_phase()
 
     def treasure_phase(self):
-        announce_epoch_start(TREASURE_PHASE)
         super().treasure_phase()
+        display_buffer_line()
 
     def buy_phase(self):
-        announce_epoch_start(BUY_PHASE)
+        display_title("{}".format(BUY_PHASE))
         super().buy_phase()
 
     def end_turn(self):
-        #announce_epoch_end("Turn")
         super().end_turn()
         display_buffer_line()

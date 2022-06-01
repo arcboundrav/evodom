@@ -3,11 +3,7 @@ import re
 import click
 
 from evolvedominion.params import PHASES
-from evolvedominion.display.conf import (
-    VERBOSE_TURNS,
-    VERBOSE_PHASES,
-    VERBOSE_OPPONENTS,
-)
+from evolvedominion.display.conf import VERBOSE_OPPONENTS
 
 
 CARD_MAP = {
@@ -580,25 +576,6 @@ def parse_display_command(cmd, **kwargs):
             display_input_hint()
 
 
-
-def _announce_epoch_boundary(epoch, boundary):
-    print(">>> {} of {}.".format(boundary, epoch))
-
-
-def _should_announce_epoch(epoch):
-    return (((epoch == "Turn") and VERBOSE_TURNS) or ((epoch in PHASES) and VERBOSE_PHASES))
-
-
-def announce_epoch_start(epoch):
-    if _should_announce_epoch(epoch):
-        _announce_epoch_boundary(epoch, boundary="Start")
-
-
-def announce_epoch_end(epoch):
-    if _should_announce_epoch(epoch):
-        _announce_epoch_boundary(epoch, boundary="End")
-
-
 def announce_event(actor, consequence):
     # Announce events from a third person perspective by default.
     idx = 1
@@ -610,11 +587,12 @@ def announce_event(actor, consequence):
     # Always display the actions of human players.
     # For computer players,refer to configured display preferences.
     if (not(idx) or (VERBOSE_OPPONENTS and idx)):
-        print(">>> {} {}".format(actor, represent_consequence(consequence, lowercase=True, idx=idx)))
+        print("> {} {}".format(actor, represent_consequence(consequence, lowercase=True, idx=idx)))
 
 
-def announce_drawn_cards(pieces):
-    print(">>> You drew {}.".format(represent_pieces(pieces)))
+def announce_drawn_cards(pieces, n_turns_played):
+    if n_turns_played:
+        print("> You drew {}.".format(represent_pieces(pieces)))
 
 
 
