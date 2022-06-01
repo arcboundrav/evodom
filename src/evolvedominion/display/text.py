@@ -420,7 +420,7 @@ def represent_effect(effect, idx=0):
 
 def represent_effects(effects, lowercase, idx):
     effects_to_represent = list(filter(lambda effect: not(effect.__class__.__name__ == "Update"), effects))
-    effects = '; then '.join([represent_effect(effect, idx) for effect in effects])
+    effects = '; then '.join([represent_effect(effect, idx) for effect in effects_to_represent])
     effects = effects if lowercase else uppercase(effects)
     return add_period(effects)
 
