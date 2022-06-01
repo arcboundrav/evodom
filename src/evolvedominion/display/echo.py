@@ -8,6 +8,7 @@ from evolvedominion.display.text import (
     announce_epoch_start,
     announce_epoch_end,
     announce_event,
+    display_buffer_line,
 )
 
 
@@ -45,5 +46,6 @@ class EchoSession(Session):
         super().buy_phase()
 
     def end_turn(self):
-        announce_epoch_end("Turn")
+        #announce_epoch_end("Turn")
         super().end_turn()
+        display_buffer_line()
