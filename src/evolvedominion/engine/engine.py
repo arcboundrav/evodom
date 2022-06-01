@@ -183,7 +183,8 @@ def draw(state, actor, n):
     true_n = min(n, len(actor.DECK))
     for i in range(true_n):
         transfer_top_piece(destination=actor.HAND, source=actor.DECK)
-    actor.peek(actor.HAND[-true_n:])
+    if true_n:
+        actor.peek(actor.HAND[-true_n:])
 
 
 def swap_top_cards_of_deck(state, actor):
