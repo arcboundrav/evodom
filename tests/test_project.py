@@ -1106,7 +1106,7 @@ def test_mine_choices():
     t0_pile = zone_data_t0['supply'][pile_index]
 
     transfer_top_piece(destination=t0_trash, source=t0_hand)
-    transfer_top_piece(destination=t0_discard, source=t0_pile)
+    transfer_top_piece(destination=t0_hand, source=t0_pile)
     validate_zone_data(zone_data_t1, zone_data_t0)
 
 
