@@ -990,7 +990,7 @@ class PoacherProcess(Process):
     __slots__ = tuple()
     def __init__(self, actor, max_count):
         super().__init__(actor=actor,
-                         main_effect=Initiate(actor, PoacherProcedure(self)))
+                         main_effect=Initiate(actor, PoacherProcedure(self)),
                          setup_effect=None,
                          teardown_effect=None,
                          max_count=max_count)

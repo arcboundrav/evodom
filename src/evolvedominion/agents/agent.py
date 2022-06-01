@@ -4,7 +4,7 @@ from itertools import chain, filterfalse
 from evolvedominion.engine.engine import TreasureChoices
 
 
-class Actor:
+class Agent:
     """
     Base class for participants in a game of Dominion.
     """
