@@ -102,6 +102,7 @@ VERBS = {
     'discard_pieces':["discard", "discards"],
     'discard_zone':["discard", "discards"],
     'reveal':["reveal", "reveals"],
+    'reveal_pieces':["reveal", "reveals"],
     'trash':["trash", "trashes"],
     'trash_pieces':["trash", "trashes"],
     'draw':["draw", "draws"],

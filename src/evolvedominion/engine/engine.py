@@ -215,6 +215,10 @@ def reveal(state, actor, piece):
     pass
 
 
+def reveal_pieces(state, actor, pieces):
+    pass
+
+
 def do_nothing(state, actor):
     """
     Represent choices which have no impact on the game, such as
@@ -934,8 +938,8 @@ class BureaucratProcedure(Subprocess):
                 choice.add(signal)
                 return [choice]
             else:
-                reveal_effects = [Effect(reveal, actor=actor, piece=card) for card in actor.HAND]
-                return [Consequence(*reveal_effects, signal)]
+                return [Consequence(Effect(reveal_pieces, actor=actor, pieces=actor.HAND),
+                                    signal)]
         else:
             choices = []
             for victory_card in victory_cards:
@@ -1075,7 +1079,8 @@ class BanditProcedure(Subprocess):
         else:
             choices = []
             topcards = [actor.DECK[-1], actor.DECK[-2]]
-            reveal_effects = [Effect(reveal, actor=actor, piece=card) for card in topcards]
+            #reveal_effects = [Effect(reveal, actor=actor, piece=card) for card in topcards]
+            reveal_effect = Effect(reveal_pieces, actor=actor, pieces=topcards)
             trashables, discardables = partition(self.could_trash, topcards)
             unique_trashables = get_pieces(trashables, unique=True)
             n_unique_trashables = len(unique_trashables)
@@ -1086,7 +1091,7 @@ class BanditProcedure(Subprocess):
                     trash_index, discard_index = index_permutation
                     trashable = unique_trashables[trash_index]
                     discardable = unique_trashables[discard_index]
-                    choices.append(Consequence(*reveal_effects,
+                    choices.append(Consequence(reveal_effect,
                                                Effect(trash,
                                                       actor=actor,
                                                       piece=trashable,
@@ -1100,7 +1105,7 @@ class BanditProcedure(Subprocess):
             #       or, both cards being trashable while sharing a piece type.
             elif (n_unique_trashables == 1):
                 trashable = unique_trashables[0]
-                consequence = Consequence(*reveal_effects,
+                consequence = Consequence(reveal_effect,
                                           Effect(trash,
                                                  actor=actor,
                                                  piece=trashable,
@@ -1115,7 +1120,7 @@ class BanditProcedure(Subprocess):
                 choices.append(consequence)
             # Case: Nothing to trash, discard both pieces.
             else:
-                choices.append(Consequence(*reveal_effects,
+                choices.append(Consequence(reveal_effect,
                                            Effect(discard_pieces,
                                                   actor=actor,
                                                   pieces=discardables,
