@@ -1279,7 +1279,7 @@ class WitchProcedure(Subprocess):
         return [option]
 
 
-class WitchAttack(Attack):
+class WitchAttack(OneshotAttack):
     """ Uses max_count to ensure the attack only happens once per Player. """
     __slots__ = tuple()
     def __init__(self, actor):
