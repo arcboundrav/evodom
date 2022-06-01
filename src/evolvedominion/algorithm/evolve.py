@@ -92,7 +92,8 @@ INITIAL_ACTION_CLASS_SIGMA = np.arange(N_ACTION_CLASSES, dtype=SMALL_INT)
 
 class Phenotype:
     """
-    Maps genetic parameters to behavioral dispositions and informs Strategy choices.
+    Maps genetic parameters to behavioral dispositions and informs
+    Strategy choices.
     """
     __slots__ = (
         "genome",
@@ -191,14 +192,14 @@ def mutate_action_class_sigma(sigma):
 @njit
 def recombine_sigma(top, bot, N=17):
     """
-    Combine two permutations of size N into one permutation, result.
-    For each index, i, into result:
-        1) Select which parent will contribute the element at result[i].
-        2) Find the leftmost element of the contributing parent which has
-           not yet been included in result.
-           If such an element exists, insert it into result[i].
-           Otherwise, finish filling result with the entries of the other
-           parent which have not yet been included in result.
+    Combine two permutations of size N into one permutation, R.
+    For each index, i, into R:
+        1) Select which parent will contribute the element at R[i].
+        2) Find the leftmost element of the contributing parent
+           which has not yet been included in R.
+           If such an element exists, insert it into R[i].
+           Otherwise, finish filling result with the entries of
+           the other parent which have not yet been included in R.
     """
     top_idx = 0
     bot_idx = 0
@@ -237,6 +238,11 @@ def recombine_sigma(top, bot, N=17):
 
 
 def recombine(a, b):
+    """
+    Derive an offspring given two ancestor Genomes. Offspring
+    are more likely to inherit attributes from the fitter of
+    the two parents.
+    """
     top, bot = (a, b) if (a.rank <= b.rank) else (b, a)
     new_alpha = top.alpha if roll(P_INHERIT_ALPHA_TOP) else bot.alpha
     new_end_alpha = top.end_alpha if roll(P_INHERIT_ALPHA_TOP) else bot.end_alpha
@@ -279,19 +285,27 @@ def clone_genome(a):
 @njit
 def recombination_schedule(n_offspring, n_ancestors):
     """
-    Sample n_offspring pairs of distinct ancestor indices with uniform probability.
+    Sample n_offspring pairs of distinct ancestor indices with uniform
+    probability.
 
-    Making a single call to np.random.random_sample((n_row, n_col)) then transforming
-    the sampled values in each row into unique indices via argsort is equivalent to
-    generating n_row permutations of the integers in the closed interval [0, ncol-1].
+    Making a single call to np.random.random_sample((n_row, n_col))
+    then transforming the sampled values in each row into unique
+    indices via argsort is equivalent to generating n_row permutations
+    of the integers in the closed interval [0, ncol-1].
 
-    Flattening the result and iterating over the entries 2 at a time is roughly
-    equivalent to exhaustively sampling pairs of ancestors without replacement,
-    restarting the procedure only after every ancestor has had a chance to find a pair,
-    until n_offspring pairs have been generated.
+    Flattening the result and iterating over the entries 2 at a time is
+    roughly equivalent to exhaustively sampling pairs of ancestors
+    without replacement, restarting the procedure only after every
+    ancestor has had a chance to find a pair, until n_offspring pairs
+    have been generated.
 
-    Profiling demonstrates that this approach is much faster than repeatedly calling
-    np.random.choice() with replace=False and size=2.
+    Profiling demonstrates that this approach is much faster than
+    repeatedly calling np.random.choice() with replace=False and
+    size=2.
+
+    Note: argsort doesn't currently play nicely with numba, so that
+    step occurs in the Simulation method which calls this auxillary
+    function.
     """
     pairs_per_row = int(n_ancestors // 2)
     n_rows = max(1, np.ceil(n_offspring / pairs_per_row))
@@ -369,6 +383,7 @@ class Simulation:
         }
 
     def random_spawn(self, N=None):
+        """ Generate N Genomes with randomized attributes. """
         N = self.N if (N is None) else N
         np.random.shuffle(self.alphas)
         np.random.shuffle(self.end_alphas)
@@ -382,13 +397,17 @@ class Simulation:
                                        action_class_sigma=random_initial_action_class_sigma()))
 
     def update_players(self):
+        """
+        Re-use the same Strategy instances by replacing their
+        Phenotypes with the latest generation of Genomes.
+        """
         for i in range(self.N):
             self.players[i].phenotype = Phenotype(self.genomes[i])
 
     def _sort_entrants_by_fitness_and_penalty(self, entrants):
         """
-        Passes the pmf and end_pmf attributes of each entrant's Phenotype to penalize()
-        in order to play nicely with numba. Eschewing a list comprehension for clarity.
+        Passes the pmf and end_pmf attributes of each entrant's
+        Phenotype to penalize() in order to play nicely with numba.
         """
         entrants_and_penalties = []
         PENALTY_INDEX = 1
@@ -400,12 +419,15 @@ class Simulation:
 
     def _rerank_genomes(self, entrants):
         """
-        Expects entrants to be sorted ascending by rank, where a lower rank implies higher
-        fitness. Taking fitness and penalties into account, re-rank entrants in a stable manner.
-        i.e., given two entrants A and B: If fitness(A)>fitness(B) and penalty(A)==penalty(B),
-        then index(A)<index(B) both before and after the re-ranking procedure.
+        Expects entrants to be sorted ascending by rank, where a lower
+        rank implies higher fitness. Taking fitness and penalties into
+        account, re-rank entrants in a stable manner, i.e., given two
+        entrants A and B:
+        If fitness(A)>fitness(B) and penalty(A)==penalty(B), then
+        index(A)<index(B) both before and after the re-ranking.
 
-        Overwrites the rank of each Entrant's genome to reflect the new order and returns them.
+        Overwrites the rank of each Entrant's genome to reflect the
+        new order and returns them.
         """
         penalized_genomes = []
         ENTRANT_INDEX = 0
@@ -417,16 +439,29 @@ class Simulation:
         return penalized_genomes
 
     def solve_ancestors(self):
+        """
+        Cull unfit Genomes to leave the subset which will have a chance
+        to pass on their attributes to the next generation via cloning
+        and reproduction.
+        """
         if self.N_ANCESTORS:
             reranked_genomes = self._rerank_genomes(self.elimination_tournament.entrants)
             return reranked_genomes[:self.N_ANCESTORS]
         return []
 
     def clone_ancestors(self, ancestors):
+        """
+        Pass on the the top self.N_CLONE Genomes to the next generation,
+        subject to mutation.
+        """
         if self.N_CLONE:
             self.genomes.extend(clone_genome(ancestors[i]) for i in range(self.N_CLONE))
 
     def _recombine_given_schedule(self, ancestors, schedule):
+        """
+        A schedule is a sequence of index pairs specifying which ancestors
+        will reproduce to add an offspring to the next generation.
+        """
         indices = ((schedule[j], schedule[j+1]) for j in range(0, schedule.size, 2))
         for i in range(self.N_RECOMBINE):
             a, b = next(indices)
@@ -442,6 +477,10 @@ class Simulation:
             self._recombine_given_schedule(ancestors, schedule)
 
     def inject_novelty(self):
+        """
+        Discourage the entire population converging to a local maxima
+        by injecting entirely random Genomes into each generation.
+        """
         self.random_spawn(N=self.N_NOVEL)
 
     def solve_next_generation(self):
@@ -454,9 +493,9 @@ class Simulation:
 
     def evaluate_fitness(self, pool):
         """
-        fitness(Strategy A) > fitness(Strategy B) when Strategy A places higher
-        than Strategy B in a single elimination tournament wherein competitors play
-        Dominion.
+        fitness(Strategy A) > fitness(Strategy B) when Strategy A
+        places higher than Strategy B in a single elimination
+        tournament wherein competitors play Dominion.
         """
         self.seeding_tournament.run(entrants=self.players, pool=pool)
         self.elimination_tournament.run(entrants=self.seeding_tournament.entrants, pool=pool)
