@@ -411,8 +411,6 @@ def represent_effect_kwargs(kwargs):
 
 
 def represent_effect(effect, idx=0):
-    if (effect.__class__.__name__ == "Update"):
-        return ""
     verb_string = '{}'.format(VERBS[effect.function.__name__][idx])
     kwargs_string = represent_effect_kwargs(effect.kwargs)
     if kwargs_string:
@@ -421,6 +419,7 @@ def represent_effect(effect, idx=0):
 
 
 def represent_effects(effects, lowercase, idx):
+    effects_to_represent = list(filter(lambda effect: not(effect.__class__.__name__ == "Update"), effects))
     effects = '; then '.join([represent_effect(effect, idx) for effect in effects])
     effects = effects if lowercase else uppercase(effects)
     return add_period(effects)
