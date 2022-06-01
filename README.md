@@ -9,8 +9,7 @@ of a genetic algorithm.
 
 ## Installation
 
-Before installation, it is recommend to create a virtualenv with a version of
-Python>=3.8.12. (See: https://docs.python.org/3/tutorial/venv.html)
+Create a [virtualenv](https://docs.python.org/3/tutorial/venv.html) with a version of [Python](https://www.python.org/downloads/) >= 3.8.12.
 
 ### Install from PyPI using `pip`
 ```
