@@ -868,7 +868,13 @@ class ChapelChoices(Decision):
         if trashables:
             combos = get_piece_combinations(trashables, kmin=1, kmax=4)
             for combo in combos:
+                # QoL: Sort the pieces within alphabetically.
+                combo = sorted(combo, key=lambda p: repr(p))
                 choices.append(Consequence(Effect(trash_pieces, actor=actor, pieces=combo)))
+        # QoL: Sort the choices descending by size and within each
+        #      size, alphabetically.
+        choices.sort(key=lambda c: (len(c.effects[0].kwargs['pieces']),
+                                    repr(c.effects[0].kwargs['pieces'][0])))
         return choices
 
 
@@ -1108,7 +1114,7 @@ class BanditProcedure(Subprocess):
             # Case: Nothing to trash, discard both pieces.
             else:
                 choices.append(Consequence(*reveal_effects,
-                                           Effect(discards,
+                                           Effect(discard_pieces,
                                                   actor=actor,
                                                   pieces=discardables,
                                                   source=actor.DECK),
