@@ -6,3 +6,35 @@ which rely only on local information could attain competent play through the use
 of a genetic algorithm.
 
 ![Tests](https://github.com/arcboundrav/evodom/actions/workflows/tests.yml/badge.svg)
+
+## Installation
+
+Before installation, it is recommend to create a virtualenv with a version of
+Python>=3.8.12. (See: https://docs.python.org/3/tutorial/venv.html)
+
+### Install from PyPI using `pip`
+```
+python -m pip install -U pip
+python -m pip install -U evolvedominion
+```
+
+### Install from Git
+Clone the repository using either
+```
+git clone https://github.com/evolvedominion/evolvedominion.git
+```
+or
+```
+git clone git@github.com:matplotlib/matplotlib.git
+```
+Navigate to the top level of the package and install using `pip`
+```
+cd evolvedominion
+python -m pip install .
+```
+Note: The tests will require additional dependencies.
+```
+python -m pip install -r requirements_dev.txt
+```
+Updating evolvedominion to the latest release can be done
+by navigating to the repository and using `git pull`
