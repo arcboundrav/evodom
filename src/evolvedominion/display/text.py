@@ -443,7 +443,7 @@ def _display_zone(ZONE_STRING, zone_owner):
     list_of_strings = [repr(piece) for piece in zone]
     display_title(ZONE_TITLES[ZONE_STRING])
     if list_of_strings:
-        if (ZONE_STRING == "Discard"):
+        if (ZONE_STRING == "DISCARD"):
             list_of_strings = list_of_strings[-1:]
         auto_print(list_of_strings, 4)
 
