@@ -911,9 +911,8 @@ class VassalChoices(Decision):
 
 class BureaucratProcedure(Subprocess):
     """
-    Each other player reveals a Victory card from their hand
-    and puts it onto their deck (or reveals a hand with no
-    Victory cards).
+    Reveal a Victory card from hand and topdeck it.
+    If you can't, reveal hand.
     """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
@@ -939,10 +938,16 @@ class BureaucratProcedure(Subprocess):
 
 
 class BureaucratAttack(OneshotAttack):
+    """
+    Each other player reveals a Victory card from their hand
+    and puts it onto their deck (or reveals a hand with no
+    Victory cards).
+    """
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
                          main_effect=Initiate(actor, BureaucratProcedure(self)))
+
 
 class BureaucratChoices(Decision):
     __slots__ = tuple()
@@ -957,6 +962,7 @@ class BureaucratChoices(Decision):
             outcome = Consequence()
         for victim in actor.opponents:
             outcome.add(BureaucratAttack(victim))
+            outcome.custom_message = ["attack with Bureaucrat!", "attacks with Bureaucrat!"]
         return [outcome]
 
 
@@ -1001,7 +1007,6 @@ class PoacherProcess(Process):
         At least one card left to discard and at least one card available.
         """
         assert super().count_antecedent and len(self.actor.HAND)
-
 
 
 class PoacherChoices(Decision):
@@ -1128,10 +1133,14 @@ class BanditChoices(Decision):
         gold = state.filter_supply(lambda x: repr(x) == "Gold")
         if gold:
             outcome = Acquisition(Effect(gain, actor=actor, piece=gold[-1]))
+            custom_message = ["gain a Gold then attack with Bandit!",
+                              "gains a Gold then attacks with Bandit!"]
         else:
             outcome = Consequence(Effect(do_nothing, actor=actor))
+            custom_message = ["attack with Bandit!", "attacks with Bandit!"]
         for victim in actor.opponents:
             outcome.add(BanditAttack(victim))
+        outcome.custom_message = custom_message
         return [outcome]
 
 
@@ -1160,6 +1169,8 @@ class CouncilRoomChoices(Decision):
         interaction = Consequence()
         for victim in actor.opponents:
             interaction.add(CouncilRoomProcess(victim))
+        interaction.custom_message = ["prompt each other player to draw a card with Council Room.",
+                                      "prompts each other player to draw a card with Council Room."]
         return [interaction]
 
 
@@ -1272,7 +1283,7 @@ class SentryChoices(Decision):
 
 
 class WitchProcedure(Subprocess):
-    """ Each other player gains a Curse. """
+    """ Gain a Curse if able. """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
         signal = Update(self.process.increment_count)
@@ -1287,7 +1298,7 @@ class WitchProcedure(Subprocess):
 
 
 class WitchAttack(OneshotAttack):
-    """ Uses max_count to ensure the attack only happens once per Player. """
+    """ Each other player gains a Curse. """
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
@@ -1300,6 +1311,7 @@ class WitchChoices(Decision):
         outcome = Consequence()
         for victim in actor.opponents:
             outcome.add(WitchAttack(victim))
+        outcome.custom_message = ["attack with Witch!", "attacks with Witch!"]
         return [outcome]
 
 
