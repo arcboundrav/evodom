@@ -98,7 +98,7 @@ VERBS = {
     'gain':["gain", "gains"],
     'play_piece':["play", "plays"],
     'play_treasures':["play", "plays"],
-    'discard_piece':["discard", "discards"],
+    'discard':["discard", "discards"],
     'discard_pieces':["discard", "discards"],
     'discard_zone':["discard", "discards"],
     'reveal':["reveal", "reveals"],
