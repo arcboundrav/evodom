@@ -1250,7 +1250,7 @@ class LibraryChoices(Decision):
                 "begin the process described by Library.",
                 "begins the process described by Library.",
              ]
-            return [Consequence(process)]
+            return [consequence]
         return [NullOption(actor)]
 
 
