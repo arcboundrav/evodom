@@ -70,8 +70,8 @@ from evolvedominion.algorithm.evolve import (
     random_initial_sigma,
     recombine_sigma,
 )
-from evolvedominion.actors.player import Player, EchoPlayer
-from evolvedominion.actors.strategy import RandomStrategy, EchoRandomStrategy, Strategy, EchoStrategy
+from evolvedominion.agents.player import Player, EchoPlayer
+from evolvedominion.agents.strategy import RandomStrategy, EchoRandomStrategy, Strategy, EchoStrategy
 from evolvedominion.display.echo import EchoSession
 from evolvedominion.engine.session import (
     _DEFAULT_KINGDOM,
