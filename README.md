@@ -24,7 +24,7 @@ git clone https://github.com/evolvedominion/evolvedominion.git
 ```
 or
 ```
-git clone git@github.com:matplotlib/matplotlib.git
+git clone git@github.com:evolvedominion/evolvedominion.git
 ```
 Navigate to the top level of the package and install using `pip`
 ```
