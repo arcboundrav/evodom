@@ -1016,6 +1016,7 @@ class PoacherChoices(Decision):
             return [NullOption(actor)]
         return [Consequence(PoacherProcess(actor=actor, max_count=n_to_discard))]
 
+
 class ThroneRoomChoices(Decision):
     """
     You may play an Action card from your hand twice.
@@ -1134,25 +1135,31 @@ class BanditChoices(Decision):
         return [outcome]
 
 
-class CouncilRoomProcedure(Decision):
-    """
-    Each other player draws a card.
-    """
+class CouncilRoomProcedure(Subprocess):
+    """ Draw a card. """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
-        return [Consequence(Effect(draw, actor=actor, n=1))]
+        return [Consequence(Effect(draw, actor=actor, n=1),
+                            Update(self.process.increment_count))]
+
+class CouncilRoomProcess(Process):
+    """ Each other player draws a card. """
+    __slots__ = tuple()
+    def __init__(self, actor):
+        super().__init__(actor=actor,
+                         main_effect=Initiate(actor, CouncilRoomProcedure(self)))
+
+    @property
+    def antecedent(self):
+        return self.count < self.max_count
 
 
 class CouncilRoomChoices(Decision):
-    __slots__ = "procedure"
-    def __init__(self):
-        super().__init__()
-        self.procedure = CouncilRoomProcedure()
-
+    __slots__ = tuple()
     def generate_choices(self, state, actor):
         interaction = Consequence()
         for victim in actor.opponents:
-            interaction.add(Initiate(victim, self.procedure))
+            interaction.add(CouncilRoomProcess(victim))
         return [interaction]
 
 
