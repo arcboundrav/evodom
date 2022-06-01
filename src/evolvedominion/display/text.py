@@ -411,6 +411,8 @@ def represent_effect_kwargs(kwargs):
 
 
 def represent_effect(effect, idx=0):
+    if (effect.__class__.__name__ == "Update"):
+        return ""
     verb_string = '{}'.format(VERBS[effect.function.__name__][idx])
     kwargs_string = represent_effect_kwargs(effect.kwargs)
     if kwargs_string:
