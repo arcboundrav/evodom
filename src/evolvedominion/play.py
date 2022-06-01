@@ -30,7 +30,7 @@ def _create_session(winning_phenotypes):
         phenotypes.append(winning_phenotypes[i])
         if i:
             i = i - 1
-    players = [Player(pid=0)]
+    players = [EchoPlayer(pid=0)]
     players.extend(EchoStrategy(pid=i, phenotype=phenotypes[i]) for i in range(n_to_play_against))
     session = EchoSession()
     session.accept_players(players)
