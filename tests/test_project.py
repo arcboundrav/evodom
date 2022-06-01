@@ -2284,7 +2284,7 @@ def test_vassal_choices():
     assert len(choices) == 2
     discard_choice = choices[0]
     discard_effects = discard_choice.effects
-    assert discard_effects[0].function.__name__ == "discard_piece"
+    assert discard_effects[0].function.__name__ == "discard"
     play_choice = choices[1]
     play_effects = play_choice.effects
     assert play_effects[0].function.__name__ == "play_piece"
