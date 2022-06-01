@@ -866,15 +866,17 @@ class ChapelChoices(Decision):
         choices = [NullOption(actor)]
         trashables = actor.HAND
         if trashables:
+            trash_choices = []
             combos = get_piece_combinations(trashables, kmin=1, kmax=4)
             for combo in combos:
                 # QoL: Sort the pieces within alphabetically.
                 combo = sorted(combo, key=lambda p: repr(p))
-                choices.append(Consequence(Effect(trash_pieces, actor=actor, pieces=combo)))
-        # QoL: Sort the choices descending by size and within each
-        #      size, alphabetically.
-        choices.sort(key=lambda c: (len(c.effects[0].kwargs['pieces']),
-                                    repr(c.effects[0].kwargs['pieces'][0])))
+                trash_choices.append(Consequence(Effect(trash_pieces, actor=actor, pieces=combo)))
+            # QoL: Sort the choices descending by size and within each
+            #      size, alphabetically.
+            trash_choices.sort(key=lambda c: (len(c.effects[0].kwargs['pieces']),
+                                              repr(c.effects[0].kwargs['pieces'][0])))
+            choices.extend(trash_choices)
         return choices
 
 
