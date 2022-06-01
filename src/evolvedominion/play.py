@@ -8,7 +8,7 @@ from evolvedominion.agents.strategy import (
     EchoStrategy,
     EchoRandomStrategy,
 )
-from evolvedominion.engine.session import _ANOTHER_KINGDOM
+from evolvedominion.engine.session import _ANOTHER_KINGDOM, _ANOTHER_KINGDOM2
 from evolvedominion.display.echo import EchoSession
 from evolvedominion.display.text import newline, summarize_session
 
@@ -41,7 +41,7 @@ def _create_session(winning_phenotypes):
 def _get_random_opponent_session():
     players = [EchoPlayer(pid=0)]
     players.extend(EchoRandomStrategy(pid=i) for i in range(1, 4))
-    session = EchoSession(kingdom=_ANOTHER_KINGDOM)
+    session = EchoSession(kingdom=_ANOTHER_KINGDOM2)
     session.accept_players(players)
     return session
 
