@@ -449,6 +449,7 @@ def _display_zone(ZONE_STRING, zone_owner):
         auto_print(list_of_strings, 4)
 
 
+@buffer_line
 def display_deck(**kwargs):
     zone_owner = kwargs['actor']
     zone = getattr(zone_owner, 'DECK')
