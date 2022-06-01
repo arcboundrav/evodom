@@ -1245,6 +1245,11 @@ class LibraryChoices(Decision):
     def generate_choices(self, state, actor):
         process = LibraryProcess(actor)
         if process.antecedent:
+            consequence = Consequence(process)
+            consequence.custom_message = [
+                "begin the process described by Library.",
+                "begins the process described by Library.",
+             ]
             return [Consequence(process)]
         return [NullOption(actor)]
 
