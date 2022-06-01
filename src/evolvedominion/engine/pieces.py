@@ -29,6 +29,7 @@ from evolvedominion.engine.engine import (
     CouncilRoomChoices,
     SentryChoices,
     WitchChoices,
+    ArtisanChoices,
 )
 
 

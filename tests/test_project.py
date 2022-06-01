@@ -26,6 +26,22 @@ from evolvedominion.engine.pieces import (
     Militia,
     Market,
     Mine,
+    Chapel,
+    Harbinger,
+    Vassal,
+    Bureaucrat,
+    Gardens,
+    Moneylender,
+    Poacher,
+    ThroneRoom,
+    Bandit,
+    CouncilRoom,
+    Festival,
+    Laboratory,
+    Library,
+    Sentry,
+    Witch,
+    Artisan,
 )
 from evolvedominion.engine.engine import (
     enact,
@@ -57,7 +73,11 @@ from evolvedominion.algorithm.evolve import (
 from evolvedominion.actors.player import Player, EchoPlayer
 from evolvedominion.actors.strategy import RandomStrategy, EchoRandomStrategy, Strategy, EchoStrategy
 from evolvedominion.display.echo import EchoSession
-from evolvedominion.engine.session import _DEFAULT_KINGDOM, Session
+from evolvedominion.engine.session import (
+    _DEFAULT_KINGDOM,
+    _ANOTHER_KINGDOM,
+    Session,
+)
 
 
 _VICTORY_AND_TREASURE = [
@@ -189,7 +209,6 @@ def compare_player_zone_data(player_zone_data_t1, player_zone_data_t0):
     """ Return a list of Zones which don't match. """
     changed_zone_names = []
     for key in player_zone_data_t1:
-        #if not(zones_are_equal(player_zone_data_t1[key], player_zone_data_t0[key])):
         if not(zones_are_equal(player_zone_data_t1, player_zone_data_t0)):
             changed_zone_names.append(key)
     return changed_zone_names
@@ -581,6 +600,25 @@ def validate_effects(state, effects, **changes):
     enact(state, effects)
     data_t1 = extract_state_data(state)
     validate_state_changes(data_t1, data_t0, **changes)
+
+
+def validate_null_option(choices):
+    """
+    Common case where the only Consequence generated
+    by a Decision is the option to do nothing.
+    """
+    assert len(choices) == 1
+    assert isinstance(choices[0], NullOption)
+
+
+def valid_draw(pid, n, zd_t0):
+    t0_hand = zd_t0[pid]['HAND']
+    t0_deck = zd_t0[pid]['DECK']
+    for i in range(n):
+        transfer_top_piece(destination=t0_hand, source=t0_deck)
+
+
+
 
 
 def test_cellar_simple_effects():
@@ -2083,3 +2121,871 @@ def test_conservation_of_n_genomes():
     simulation.evolve(n_generation=1, debug=True)
     final_n = len(simulation.genomes)
     assert original_n == final_n
+
+
+def test_chapel_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+
+    chapel = Chapel()
+
+    # Case: Since Chapel is optional, having nothing
+    # to trash should return a single option, to do nothing.
+    actor.DISCARD.extend(actor.HAND)
+    actor.HAND.clear()
+    choices = expand_choices(state, actor, chapel.decision)
+    assert len(choices) == 1
+    assert isinstance(choices[0], NullOption)
+
+    # Case: Something to trash.
+    actor.HAND.extend(actor.DISCARD)
+    actor.DISCARD.clear()
+    choices = expand_choices(state, actor, chapel.decision)
+    assert len(choices) > 1
+    assert isinstance(choices[0], NullOption)
+    assert all((c.effects[0].function.__name__ == "trash_pieces") for c in choices[1:])
+
+    # Choose one.
+    choice = choices[-1]
+    pieces_to_trash = choice.effects[0].kwargs['pieces']
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect the predicted changes.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_trash = zone_data_t0['TRASH']
+    for piece in pieces_to_trash:
+        transfer_piece(piece, destination=t0_trash, source=t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_harbinger_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    harbinger = Harbinger()
+    predicted_changes = {
+        'n_action':1,
+    }
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, harbinger.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect the predicted changes.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    transfer_top_piece(destination=t0_hand, source=t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+
+def test_harbinger_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    harbinger = Harbinger()
+
+    # Case: Nothing in discard.
+    actor.DISCARD.clear()
+    choices = expand_choices(state, actor, harbinger.decision)
+    assert len(choices) == 1
+    assert isinstance(choices[0], NullOption)
+
+    # Case: Something to put on top.
+    actor.DISCARD.append(harbinger)
+    choices = expand_choices(state, actor, harbinger.decision)
+    assert len(choices) == 2
+    assert isinstance(choices[0], NullOption)
+
+    choice = choices[1]
+    effects = choice.effects
+    assert effects[0].function.__name__ == "topdeck"
+
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect the predicted changes.
+    t0_discard = zone_data_t0[actor_pid]['DISCARD']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    transfer_top_piece(destination=t0_deck, source=t0_discard)
+
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_vassal_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    vassal = Vassal()
+    predicted_changes = {
+        'n_coin':2,
+    }
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, vassal.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_vassal_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    vassal = Vassal()
+
+    # Case: Nothing in deck nor discard.
+    actor.ASIDE.extend(actor.DISCARD)
+    actor.ASIDE.extend(actor.DECK)
+    actor.DISCARD.clear()
+    actor.DECK.clear()
+
+    choices = expand_choices(state, actor, vassal.decision)
+    validate_null_option(choices)
+
+    # Case: Single card in Deck, non-action.
+    # Only choice is to Discard it.
+    copper = Copper()
+    actor.DECK.append(copper)
+
+    choices = expand_choices(state, actor, vassal.decision)
+    assert len(choices) == 1
+    choice = choices[0]
+    effects = choice.effects
+    assert effects[0].function.__name__ == "discard_piece"
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_discard = zone_data_t0[actor_pid]['DISCARD']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    transfer_top_piece(destination=t0_discard, source=t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Case: Single card in Deck, action.
+    # Either discard it, or play it.
+    actor.DECK.append(vassal)
+
+    choices = expand_choices(state, actor, vassal.decision)
+    assert len(choices) == 2
+    discard_choice = choices[0]
+    discard_effects = discard_choice.effects
+    assert discard_effects[0].function.__name__ == "discard_piece"
+    play_choice = choices[1]
+    play_effects = play_choice.effects
+    assert play_effects[0].function.__name__ == "play_piece"
+
+    # The simple effects of the Vassal will add 2 coin.
+    # Playing it for free means n_action won't change.
+    predicted_changes = {
+        'n_coin':2
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, play_choice, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_play = zone_data_t0[actor_pid]['PLAY']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    transfer_top_piece(destination=t0_play, source=t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_bureaucrat_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    opponents = actor.opponents
+    opponent_pids = [opp.pid for opp in opponents]
+
+    bureaucrat = Bureaucrat()
+
+    # opponents[0] has a Moat so won't be affected.
+    opponents[0].HAND.append(Moat())
+
+    # opponents[1] has no victory cards in hand, so
+    # should reveal their hand.
+    opponents[1].DISCARD.extend(opponents[1].HAND)
+    opponents[1].HAND.clear()
+    opponents[1].HAND.append(Copper())
+
+    # opponents[2] will need to put a victory card
+    # on their deck.
+    opponents[2].DISCARD.extend(opponents[2].HAND)
+    opponents[2].HAND.clear()
+    opponents[2].HAND.append(Duchy())
+
+    choices = expand_choices(state, actor, bureaucrat.decision)
+    assert len(choices) == 1
+    choice = choices[0]
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect the predicted changes.
+    # 1) Actor should have gained a Silver onto their Deck.
+    silver_index = 5
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    t0_silver_pile = zone_data_t0['supply'][silver_index]
+    transfer_top_piece(destination=t0_deck, source=t0_silver_pile)
+
+    # 2) Opponents[2] should have topdecked their Duchy.
+    t0_opp2_deck = zone_data_t0[opponent_pids[2]]['DECK']
+    t0_opp2_hand = zone_data_t0[opponent_pids[2]]['HAND']
+    transfer_top_piece(destination=t0_opp2_deck, source=t0_opp2_hand)
+
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_gardens():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+
+    gardens = Gardens()
+    assert not(gardens.solve_points(actor.ASIDE))
+
+    n_cards = len(actor.collection)
+    n_cards_after_gardens = n_cards + 1
+    gardens_vp_add = n_cards_after_gardens // 10
+    base_vp = actor.victory_points
+    predicted_vp = base_vp + gardens_vp_add
+
+    actor.HAND.append(gardens)
+    assert actor.victory_points == predicted_vp
+
+
+def test_moneylender_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    moneylender = Moneylender()
+
+    # Case: Nothing to Trash.
+    actor.DISCARD.extend(actor.HAND)
+    actor.HAND.clear()
+    choices = expand_choices(state, actor, moneylender.decision)
+    validate_null_option(choices)
+
+    # Case: Copper to Trash.
+    actor.HAND.append(Copper())
+    choices = expand_choices(state, actor, moneylender.decision)
+    # Optional effect implies two choices: Do nothing, and trash it.
+    assert len(choices) == 2
+    assert isinstance(choices[0], NullOption)
+
+    choice = choices[1]
+    effects = choice.effects
+    assert effects[0].function.__name__ == "trash"
+    assert effects[1].function.__name__ == "add_coin"
+
+    predicted_changes = {
+        'n_coin':3
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect predicted changes.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_trash = zone_data_t0['TRASH']
+    transfer_top_piece(destination=t0_trash, source=t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_poacher_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    poacher = Poacher()
+
+    predicted_changes = {
+        'n_action':1,
+        'n_coin':1,
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, poacher.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect predicted changes.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    transfer_top_piece(destination=t0_hand, source=t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_poacher_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    poacher = Poacher()
+
+    # Case: No empty Supply piles.
+    choices = expand_choices(state, actor, poacher.decision)
+    validate_null_option(choices)
+
+    # Case: Two empty supply piles.
+    state.piles[0].clear()
+    state.piles[1].clear()
+    state.n_empty_piles = 2
+
+    actor.DISCARD.extend(actor.HAND)
+    actor.HAND.clear()
+    actor.HAND.append(Gold())
+    actor.DECK.append(Gold())
+
+    choices = expand_choices(state, actor, poacher.decision)
+    choice = choices[0]
+
+    predicted_changes = {
+        'n_action':1,
+        'n_coin':1,
+    }
+
+    # Test together with simple effects since adding a card
+    # influences discard decisions.
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, poacher.simple_effects, **predicted_changes)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Alter zone_data_t0 to reflect predicted changes.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_deck = zone_data_t0[actor_pid]['DECK']
+    t0_discard = zone_data_t0[actor_pid]['DISCARD']
+    transfer_top_piece(destination=t0_hand, source=t0_deck)
+    transfer_top_piece(destination=t0_discard, source=t0_hand)
+    transfer_top_piece(destination=t0_discard, source=t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_throneroom_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    tr0 = ThroneRoom()
+    tr1 = ThroneRoom()
+    vassal = Vassal()
+
+    actor.DISCARD.extend(actor.HAND)
+    actor.HAND.clear()
+
+    # Case: No actions to double play.
+    choices = expand_choices(state, actor, tr0.decision)
+    validate_null_option(choices)
+
+    # Case: A Throne Room in hand to double play.
+    actor.HAND.append(tr1)
+    choices = expand_choices(state, actor, tr0.decision)
+    assert len(choices) == 2
+    assert isinstance(choices[0], NullOption)
+
+    choice = choices[1]
+    effects = choice.effects
+    assert len(effects) == 2
+    assert effects[0].function.__name__ == "play_piece"
+    assert effects[1].function.__name__ == "resolve_effects"
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_play = zone_data_t0[actor_pid]['PLAY']
+    transfer_top_piece(destination=t0_play, source=t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Case: A Vassal in Hand to double play.
+    actor.HAND.append(vassal)
+
+    # Simplify things for the Vassal.
+    actor.ASIDE.extend(actor.DECK)
+    actor.ASIDE.extend(actor.DISCARD)
+    actor.DECK.clear()
+    actor.DISCARD.clear()
+
+    predicted_changes = {
+        'n_coin':4,
+    }
+
+    choices = expand_choices(state, actor, tr0.decision)
+    choice = choices[1]
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_play = zone_data_t0[actor_pid]['PLAY']
+    transfer_top_piece(destination=t0_play, source=t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_bandit_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    opponents = actor.opponents
+    opponent_pids = [opp.pid for opp in opponents]
+
+    bandit = Bandit()
+
+    # opponents[0] has a Moat, so won't be affected.
+    opponents[0].HAND.append(Moat())
+
+    # opponents[1] has only a single card in Deck
+    # and Discard combined, and it is a copper.
+    opponents[1].ASIDE.extend(opponents[1].DECK)
+    opponents[1].ASIDE.extend(opponents[1].DISCARD)
+    opponents[1].DECK.clear()
+    opponents[1].DISCARD.clear()
+    opponents[1].DECK.append(Copper())
+
+    # opponents[2] has a Silver and a Vassal as
+    # the top two cards.
+    opponents[2].DECK.append(Silver())
+    opponents[2].DECK.append(Vassal())
+
+    choices = expand_choices(state, actor, bandit.decision)
+    assert len(choices) == 1
+    choice = choices[0]
+    # Gold Pile isn't empty, so should be gaining a Gold.
+    assert isinstance(choice, Acquisition)
+    gold_index = 6
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # Attacker gains a Gold.
+    t0_hand = zone_data_t0[actor_pid]['HAND']
+    t0_gold = zone_data_t0['supply'][gold_index]
+    transfer_top_piece(destination=t0_hand, source=t0_gold)
+
+    # opponents[1]'s top card was discarded.
+    t1_deck = zone_data_t0[opponent_pids[1]]['DECK']
+    t1_discard = zone_data_t0[opponent_pids[1]]['DISCARD']
+    transfer_top_piece(destination=t1_discard, source=t1_deck)
+
+    # opponents[2] top card was discarded and second top card
+    # was trashed.
+    t2_deck = zone_data_t0[opponent_pids[2]]['DECK']
+    t2_discard = zone_data_t0[opponent_pids[2]]['DISCARD']
+    t2_trash = zone_data_t0['TRASH']
+    transfer_top_piece(destination=t2_discard, source=t2_deck)
+    transfer_top_piece(destination=t2_trash, source=t2_deck)
+
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_councilroom_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    councilroom = CouncilRoom()
+
+    predicted_changes = {
+        'n_buy':1,
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, councilroom.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    valid_draw(pid=actor.pid, n=4, zd_t0=zone_data_t0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_councilroom_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    opponents = actor.opponents
+    opponent_pids = [opp.pid for opp in opponents]
+    councilroom = CouncilRoom()
+
+    predicted_changes = {
+        'n_buy':1,
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, councilroom.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    valid_draw(pid=actor.pid, n=4, zd_t0=zone_data_t0)
+    for opponent_pid in opponent_pids:
+        valid_draw(pid=opponent_pid, n=1, zd_t0=zone_data_t0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_festival_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    festival = Festival()
+    predicted_changes = {
+        'n_action':2,
+        'n_buy':1,
+        'n_coin':2,
+    }
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, festival.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_laboratory_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    laboratory = Laboratory()
+
+    predicted_changes = {
+        'n_action':1,
+    }
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, laboratory.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    valid_draw(pid=actor.pid, n=2, zd_t0=zone_data_t0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+
+def test_library_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    library = Library()
+
+    # Remove actor's Deck and replace it with two actions.
+    # Remove actor's Discard for convenience.
+    actor.DECK.clear()
+    actor.DISCARD.clear()
+    actor.DECK.append(Cellar())
+    actor.DECK.append(Vassal())
+
+    choices = expand_choices(state, actor, library.decision)
+    assert len(choices) == 1
+    choice = choices[0]
+
+    assert len(actor.HAND) == 5
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    # The choice to set the Actions aside will be done
+    # at random. Instead of fixing a random seed, consider
+    # the cases.
+
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    t0_hand = zone_data_t0[actor.pid]['HAND']
+    t0_discard = zone_data_t0[actor.pid]['DISCARD']
+
+    # Case: There are 2 cards in actor.DISCARD, implying
+    #       they set aside both Actions.
+    if (len(actor.DISCARD) == 2):
+        transfer_top_piece(destination=t0_discard, source=t0_deck)
+        transfer_top_piece(destination=t0_discard, source=t0_deck)
+
+    # Case: There are 0 cards in actor.DISCARD, implying
+    #       they chose to keep both Actions.
+    elif not(actor.DISCARD):
+        transfer_top_piece(destination=t0_hand, source=t0_deck)
+        transfer_top_piece(destination=t0_hand, source=t0_deck)
+
+    # Case: There is 1 card in actor.DISCARD, implying they
+    #       skipped one of the Actions.
+    elif (len(actor.DISCARD) == 1):
+        # Case: They drew Vassal, then skipped Cellar.
+        if isinstance(actor.DISCARD[-1], Cellar):
+            transfer_top_piece(destination=t0_hand, source=t0_deck)
+            transfer_top_piece(destination=t0_discard, source=t0_deck)
+
+        # Case: They skipped Vassal, then drew Cellar.
+        elif isinstance(actor.DISCARD[-1], Vassal):
+            transfer_top_piece(destination=t0_discard, source=t0_deck)
+            transfer_top_piece(destination=t0_hand, source=t0_deck)
+
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_sentry_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    sentry = Sentry()
+
+    predicted_changes = {
+        'n_action':1,
+    }
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, sentry.simple_effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+    valid_draw(pid=actor.pid, n=1, zd_t0=zone_data_t0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_sentry_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    sentry = Sentry()
+
+    # Case: Nothing in Deck nor Discard.
+    actor.ASIDE.extend(actor.DISCARD)
+    actor.ASIDE.extend(actor.DECK)
+    actor.DISCARD.clear()
+    actor.DECK.clear()
+
+    choices = expand_choices(state, actor, sentry.decision)
+    validate_null_option(choices)
+
+    # Case: Single card in Deck. Note, not combining with
+    #       the simple effects, which would cause the
+    #       single card to be drawn before the choices are
+    #       generated.
+    actor.DECK.append(Silver())
+    choices = expand_choices(state, actor, sentry.decision)
+
+    # NullOption means leaving it on top.
+    assert isinstance(choices[0], NullOption)
+    trash_choice = choices[1]
+    discard_choice = choices[2]
+
+    # Trashing it.
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, trash_choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_trash = zone_data_t0['TRASH']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    transfer_top_piece(t0_trash, t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Undo that.
+    transfer_top_piece(actor.DECK, state.TRASH)
+
+    # Discarding it.
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, discard_choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_discard = zone_data_t0[actor.pid]['DISCARD']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    transfer_top_piece(t0_discard, t0_deck)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Undo that.
+    transfer_top_piece(actor.DECK, actor.DISCARD)
+
+    # Case: Two cards which differ in identity in Deck.
+    actor.DECK.append(Gold())
+
+    choices = expand_choices(state, actor, sentry.decision)
+    # First choice represents leaving them in the same order.
+    assert isinstance(choices[0], NullOption)
+
+    # Test swapping their positions.
+    swap_choice = choices[3]
+    effects = swap_choice.effects[0]
+    assert effects.function.__name__ == "swap_top_cards_of_deck"
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, swap_choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    card0 = t0_deck.pop()
+    card1 = t0_deck.pop()
+    t0_deck.append(card1)
+    t0_deck.append(card0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_witch_simple_effects():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    witch = Witch()
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, witch.simple_effects)
+    zone_data_t1 = extract_zone_data(state)
+    valid_draw(pid=actor.pid, n=2, zd_t0=zone_data_t0)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_witch_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    opponents = actor.opponents
+    opponent_pids = [opponent.pid for opponent in opponents]
+    witch = Witch()
+
+    # opponents[0] has a Moat so won't be affected.
+    opponents[0].HAND.append(Moat())
+
+    # In this contrived example, there will only be
+    # one Curse remaining in the Supply; thus the first
+    # non-immune opponent will end up emptying it and
+    # the second non-immune opponent won't gain anything.
+    curse_index = 0
+    state.piles[curse_index] = [Curse()]
+    choices = expand_choices(state, actor, witch.decision)
+    assert len(choices) == 1
+    choice = choices[0]
+
+    predicted_changes = {
+        'n_empty_piles':1,
+    }
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects, **predicted_changes)
+    zone_data_t1 = extract_zone_data(state)
+
+    t0_curse = zone_data_t0['supply'][curse_index]
+    t0_opp1_discard = zone_data_t0[opponent_pids[1]]['DISCARD']
+    transfer_top_piece(t0_opp1_discard, t0_curse)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+
+def test_artisan_choices():
+    S = get_test_session()
+    S.start_turn()
+    state = S.state
+    actor = state.current_player
+    actor_pid = actor.pid
+    artisan = Artisan()
+
+    # Case: Pathological case where there is nothing to gain.
+    temp_supply = [list(pile) for pile in state.piles]
+    for pile in state.piles:
+        pile.clear()
+
+    # Nothing in hand, either.
+    actor.ASIDE.extend(actor.HAND)
+    actor.HAND.clear()
+
+    choices = expand_choices(state, actor, artisan.decision)
+    validate_null_option(choices)
+
+    # One card in hand; only option is to gain nothing and
+    # topdeck it.
+    actor.HAND.append(Silver())
+    choices = expand_choices(state, actor, artisan.decision)
+    choice = choices[0]
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+    t0_hand = zone_data_t0[actor.pid]['HAND']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    transfer_top_piece(t0_deck, t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    silver_index = 5
+    # Nothing in hand, but something worth gaining in
+    # the Supply; adding multiple to prevent triggering
+    # empty pile detection which is irrelevant in this
+    # contrived example.
+    state.piles[silver_index] = [Silver(), Silver(), Silver()]
+
+    choices = expand_choices(state, actor, artisan.decision)
+    # Only choice is to gain that piece and immediately
+    # top deck it.
+    choice = choices[0]
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, choice.effects)
+    zone_data_t1 = extract_zone_data(state)
+    t0_hand = zone_data_t0[actor.pid]['HAND']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    t0_silver = zone_data_t0['supply'][silver_index]
+    transfer_top_piece(t0_hand, t0_silver)
+    transfer_top_piece(t0_deck, t0_hand)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Something in hand with the same identity as
+    # the gainable Piece; only only choice should
+    # be generated.
+    actor.HAND.append(Silver())
+    choices = expand_choices(state, actor, artisan.decision)
+    assert len(choices) == 1
+
+    # Something in hand with a different identity
+    # than the gainable Piece; two choices should
+    # be generated.
+    actor.ASIDE.extend(actor.HAND)
+    actor.HAND.clear()
+    actor.HAND.append(Gold())
+    choices = expand_choices(state, actor, artisan.decision)
+    assert len(choices) == 2
+
+    # First choice will be to gain the Silver and
+    # topdeck the card already in hand.
+    topdeck_gold = choices[0]
+
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, topdeck_gold.effects)
+    zone_data_t1 = extract_zone_data(state)
+    t0_hand = zone_data_t0[actor.pid]['HAND']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    t0_silver = zone_data_t0['supply'][silver_index]
+    transfer_top_piece(t0_deck, t0_hand)
+    transfer_top_piece(t0_hand, t0_silver)
+    validate_zone_data(zone_data_t1, zone_data_t0)
+
+    # Undo the gaining.
+    transfer_top_piece(state.piles[silver_index], actor.HAND)
+    #Undo the topdecking. 
+    transfer_top_piece(actor.HAND, actor.DECK)
+
+    # Second choice will be to gain the Silver and
+    # topdeck it.
+    topdeck_silver = choices[1]
+    zone_data_t0 = extract_zone_data(state)
+    validate_effects(state, topdeck_gold.effects)
+    zone_data_t1 = extract_zone_data(state)
+    t0_hand = zone_data_t0[actor.pid]['HAND']
+    t0_deck = zone_data_t0[actor.pid]['DECK']
+    t0_silver = zone_data_t0['supply'][silver_index]
+    transfer_top_piece(t0_deck, t0_silver)
+    validate_zone_data(zone_data_t1, zone_data_t0)

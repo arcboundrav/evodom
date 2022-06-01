@@ -633,36 +633,43 @@ class ImmunityProcedure(Subprocess):
         ]
 
     def generate_choices(self, state, actor):
+        signal = Update(self.process.mark_immunity)
         moat = get_pieces(actor.HAND,
                           unique=True,
                           predicate=lambda x: repr(x) == "Moat")
         if moat:
             return [Consequence(Effect(reveal, actor=actor, piece=moat[0]),
-                                Update(self.process.mark_immunity),
+                                signal,
                                 custom_message=self.success_message)]
         return [NullOption(actor, custom_message=self.failure_message)]
 
 
 class Attack(Process):
     """ Processes which check for victim immunity. """
-    __slots__ = "immunity"
+    __slots__ = "immunity", "flag"
     def __init__(self, actor, main_effect, teardown_effect=None):
         super().__init__(actor=actor,
                          main_effect=main_effect,
                          setup_effect=Initiate(actor, ImmunityProcedure(self)),
                          teardown_effect=teardown_effect)
         self.immunity = False
+        self.flag = False
 
     def mark_immunity(self):
         self.immunity = True
 
     def clear_internal_state(self):
         self.immunity = False
+        self.flag = False
+
+    def kill(self):
+        """ Support one-shot Attacks. """
+        self.flag = True
 
     @property
     def antecedent(self):
         """ Subclasses check a conjunction of this antecedent with their own. """
-        return not(self.immunity)
+        return not(self.immunity or self.flag)
 
 
 
@@ -888,27 +895,33 @@ class BureaucratProcedure(Subprocess):
     """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
+        signal = Update(self.process.kill)
         victory_cards = get_pieces(actor.HAND,
                                    unique=True,
                                    predicate=lambda x: x.is_victory)
         if not(victory_cards):
             if not(actor.HAND):
-                choices.append(NullOption(actor))
+                choice = NullOption(actor)
+                choice.add(signal)
+                return [choice]
             else:
                 reveal_effects = [Effect(reveal, actor=actor, piece=card) for card in actor.HAND]
-                choices.append(Consequence(*reveal_effects))
+                return [Consequence(*reveal_effects, signal)]
         else:
+            choices = []
             for victory_card in victory_cards:
                 choices.append(Consequence(Effect(reveal, actor=actor, piece=victory_card),
-                                           Effect(topdeck, actor=actor, piece=victory_card, source=actor.HAND)))
+                                           Effect(topdeck, actor=actor, piece=victory_card, source=actor.HAND),
+                                           signal))
         return choices
 
 
 class BureaucratAttack(Attack):
+    """ Uses flag to ensure victims only perform the routine once. """
     __slots__ = tuple()
     def __init__(self, actor):
         super().__init__(actor=actor,
-                         main_effect=Initiate(actor, BureaucratProcedure))
+                         main_effect=Initiate(actor, BureaucratProcedure(self)))
 
 
 class BureaucratChoices(Decision):
@@ -936,7 +949,7 @@ class MoneylenderChoices(Decision):
                              predicate=lambda x: repr(x) == "Copper")
         if coppers:
             choices.append(Consequence(Effect(trash, actor=actor, piece=coppers[0]),
-                                       Effect(add_coin, n=2)))
+                                       Effect(add_coin, n=3)))
         return choices
 
 
@@ -980,7 +993,7 @@ class ThroneRoomChoices(Decision):
                              unique=True,
                              predicate=lambda x: x.is_action)
         for action in actions:
-            choices.append(Consequence(Effect(play_piece, actor=actor, piece=action, source=actor.HAND),
+            choices.append(Consequence(Effect(play_piece, actor=actor, piece=action, source=actor.HAND, free=True),
                                        Effect(resolve_effects, actor=actor, piece=action)))
         return choices
 
@@ -997,16 +1010,20 @@ class BanditProcedure(Subprocess):
         return piece.is_treasure and (repr(piece) != "Copper")
 
     def generate_choices(self, state, actor):
+        signal = Update(self.process.kill)
         prepare_deck(actor, n=2)
         if not(actor.DECK):
-            return [NullOption(actor)]
+            option = NullOption(actor)
+            option.add(signal)
+            return [option]
 
         decksize = len(actor.DECK)
         if (decksize == 1):
             topcard = actor.DECK[-1]
             effect_function = trash if self.could_trash(topcard) else discard_piece
             return [Consequence(Effect(reveal, actor=actor, piece=topcard),
-                                Effect(effect_method, actor=actor, piece=topcard, source=actor.DECK))]
+                                Effect(effect_function, actor=actor, piece=topcard, source=actor.DECK),
+                                signal)]
         else:
             choices = []
             topcards = [actor.DECK[-1], actor.DECK[-2]]
@@ -1029,7 +1046,8 @@ class BanditProcedure(Subprocess):
                                                Effect(discard_piece,
                                                       actor=actor,
                                                       piece=discardable,
-                                                      source=actor.DECK)))
+                                                      source=actor.DECK),
+                                                signal))
             # Case: Covers one card being trashable and one being discardable;
             #       or, both cards being trashable while sharing a piece type.
             elif (n_unique_trashables == 1):
@@ -1045,6 +1063,7 @@ class BanditProcedure(Subprocess):
                                            actor=actor,
                                            piece=discardable,
                                            source=actor.DECK))
+                consequence.add(signal)
                 choices.append(consequence)
             # Case: Nothing to trash, discard both pieces.
             else:
@@ -1052,7 +1071,8 @@ class BanditProcedure(Subprocess):
                                            Effect(discard_pieces,
                                                   actor=actor,
                                                   pieces=discardables,
-                                                  source=actor.DECK)))
+                                                  source=actor.DECK),
+                                           signal))
         return choices
 
 
@@ -1181,7 +1201,7 @@ class SentryChoices(Decision):
         topcards = [actor.DECK[-1]] if (decksize == 1) else [actor.DECK[-1], actor.DECK[-2]]
 
         # Do the same thing (trash or discard) to the topcard(s).
-        functions = [trash, discard]
+        functions = [trash, discard_piece]
         for function in functions:
             consequence = Consequence()
             for topcard in topcards:
@@ -1212,12 +1232,15 @@ class WitchProcedure(Subprocess):
     """ Each other player gains a Curse. """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
+        signal = Update(self.process.kill)
         gainables = state.filter_supply(lambda x: repr(x) == "Curse")
         if gainables:
-            choices.append(Acquisition(Effect(gain, actor=actor, piece=gainables[0])))
+            option = Acquisition(Effect(gain, actor=actor, piece=gainables[0]),
+                                 signal)
         else:
-            choices.append(NullOption(actor))
-        return choices
+            option = NullOption(actor)
+        option.add(signal)
+        return [option]
 
 
 class WitchAttack(Attack):
@@ -1239,7 +1262,7 @@ class ArtisanChoices(Decision):
     def generate_choices(self, state, actor):
         choices = []
         gainables = state.filter_supply(lambda x: x.cost <= 5)
-        placeables = get_cards(actor.HAND, unique=True)
+        placeables = get_pieces(actor.HAND, unique=True)
         if not(gainables):
             if not(placeables):
                 choices.append(NullOption(actor))
