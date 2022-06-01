@@ -71,9 +71,9 @@ def main():
               help=DEFAULT_NSTRAT_HELP)
 @click.argument("simname")
 def evolve(o, ngen, nstrat, simname):
-    """\
-        Evolve strategies to play against.\n
-        simname\tKeyword for reading and writing strategy data.
+    """
+    Evolve strategies to play against.\n
+    simname\tKeyword for reading and writing strategy data.
     """
     if validate_evolve_args(o, ngen, nstrat, simname):
         from evolvedominion.algorithm.evolve import Simulation
@@ -94,7 +94,8 @@ def evolve(o, ngen, nstrat, simname):
 @click.argument("simname")
 def play(simname):
     """
-    Load and play against the strongest strategies evolved under the keyword SIMNAME.
+    Load and play against the strongest strategies evolved under the
+    keyword SIMNAME.
     """
     if validate_play_args(simname):
         from evolvedominion.play import play_game
