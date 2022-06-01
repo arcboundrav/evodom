@@ -123,6 +123,7 @@ COMMAND_HINTS = {
     "h":"Display the cards in your Hand.",
     "p":"Display the cards you have in Play.",
     "d":"Display the top card of your Discard pile.",
+    "k":"Display the number of cards in your Deck.",
     "s":"Display the Supply.",
     "t":"Display the Trash.",
     "o":"Display the available options to choose from.",
@@ -448,6 +449,13 @@ def _display_zone(ZONE_STRING, zone_owner):
         auto_print(list_of_strings, 4)
 
 
+def display_deck(**kwargs):
+    zone_owner = kwargs['actor']
+    zone = getattr(zone_owner, 'DECK')
+    n = len(zone)
+    display_title("Number of Cards in Your Deck: {}".format(n))
+
+
 def display_hand(**kwargs):
     return _display_zone(ZONE_STRING="HAND", zone_owner=kwargs['actor'])
 
@@ -514,6 +522,7 @@ COMMAND_MAP = {
     "h":display_hand,
     "p":display_play,
     "d":display_discard,
+    "k":display_deck,
     "s":display_supply,
     "t":display_trash,
     "o":display_choices,
