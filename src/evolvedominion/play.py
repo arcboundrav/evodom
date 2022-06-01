@@ -1,3 +1,4 @@
+import traceback
 from evolvedominion.params import GROUPSIZE
 from evolvedominion.utils import DATA_MANAGER
 from evolvedominion.agents.player import Player, EchoPlayer
@@ -62,5 +63,6 @@ def play_game(simname):
             summarize_session(session)
         except Exception as e:
             print("Unexpected error: {}".format(e))
+            traceback.print_exc(e)
         else:
             summarize_session(session)
