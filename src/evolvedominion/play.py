@@ -10,7 +10,6 @@ from evolvedominion.agents.strategy import (
 from evolvedominion.engine.session import _ANOTHER_KINGDOM
 from evolvedominion.display.echo import EchoSession
 from evolvedominion.display.text import newline, summarize_session
-from evolvedo
 
 def _load_winning_phenotypes(simname):
     simulation_data = DATA_MANAGER.load(simname)
