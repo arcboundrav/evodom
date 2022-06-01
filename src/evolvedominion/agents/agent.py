@@ -113,7 +113,7 @@ class Agent:
         ((Player A < Player B) and not(Player B < Player A)) implies
         Player B is beating Player A.
         """
-        if isinstance(other, Actor):
+        if isinstance(other, Agent):
             vp, ntp = self.victory_points, self.n_turns_played
             other_vp, other_ntp = other.victory_points, other.n_turns_played
             if (vp < other_vp):
