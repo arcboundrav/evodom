@@ -28,22 +28,22 @@ class EchoSession(Session):
     Extend Session with hooks to support text representation of the game
     for human players.
     """
-    def _start_turn(self):
+    def start_turn(self):
         announce_epoch_start("Turn")
-        super()._start_turn()
+        super().start_turn()
 
-    def _action_phase(self):
+    def action_phase(self):
         announce_epoch_start(ACTION_PHASE)
-        super()._action_phase()
+        super().action_phase()
 
-    def _treasure_phase(self):
+    def treasure_phase(self):
         announce_epoch_start(TREASURE_PHASE)
-        super()._treasure_phase()
+        super().treasure_phase()
 
-    def _buy_phase(self):
+    def buy_phase(self):
         announce_epoch_start(BUY_PHASE)
-        super()._buy_phase()
+        super().buy_phase()
 
-    def _end_turn(self):
+    def end_turn(self):
         announce_epoch_end("Turn")
-        super()._end_turn()
+        super().end_turn()
