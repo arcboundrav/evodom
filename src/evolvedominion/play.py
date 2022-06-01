@@ -37,10 +37,20 @@ def _create_session(winning_phenotypes):
     return session
 
 
+def _get_random_opponent_session():
+    players = [EchoPlayer(pid=0)]
+    players.extend(EchoRandomStrategy(pid=i) for i in range(1, 4))
+    session = EchoSession()
+    session.accept_players(players)
+    return session
+
+
 def play_game(simname):
     winners = _load_winning_phenotypes(simname)
     if (winners is not None):
         session = _create_session(winners)
+    else:
+        session = _get_random_opponent_session()
         try:
             session.play()
         except KeyboardInterrupt:
