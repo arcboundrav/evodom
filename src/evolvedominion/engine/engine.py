@@ -1282,7 +1282,7 @@ class SentryChoices(Decision):
             for topcard in topcards:
                 consequence.add(Effect(function, actor=actor, piece=topcard, source=actor.DECK))
             non_null_choices.append(consequence)
-        non_null_choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
+        non_null_choices.sort(key=lambda c: (repr(c.effects[0].function.__name__)))
         choices.extend(non_null_choices)
 
         unique_topcards = get_pieces(topcards, unique=True)
@@ -1294,7 +1294,7 @@ class SentryChoices(Decision):
         # Leaving both on top but swapping their positions.
         if (n_unique_topcards == 2):
             non_null_choices = []
-            non_null_choices.append(Consequence(Effect(swap_top_cards_of_deck,
+            choices.append(Consequence(Effect(swap_top_cards_of_deck,
                                               actor=actor,
                                               topcards=unique_topcards)))
             index_permutations = [(0, 1), (1, 0)]
@@ -1304,7 +1304,7 @@ class SentryChoices(Decision):
                                            Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
                 non_null_choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK)))
                 non_null_choices.append(Consequence(Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
-            non_null_choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
+            non_null_choices.sort(key=lambda c: (repr(c.effects[0].function.__name__)))
             choices.extend(non_null_choices)
 
         # QoL: Sort the order choices are displayed by number of cards involved.
