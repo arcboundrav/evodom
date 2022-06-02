@@ -1274,14 +1274,16 @@ class SentryChoices(Decision):
         decksize = len(actor.DECK)
         topcards = [actor.DECK[-1]] if (decksize == 1) else [actor.DECK[-1], actor.DECK[-2]]
 
+        non_null_choices = []
         # Do the same thing (trash or discard) to the topcard(s).
         functions = [trash, discard]
         for function in functions:
             consequence = Consequence()
             for topcard in topcards:
                 consequence.add(Effect(function, actor=actor, piece=topcard, source=actor.DECK))
-            choices.append(consequence)
-        choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
+            non_null_choices.append(consequence)
+        non_null_choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
+        choices.extend(non_null_choices)
 
         unique_topcards = get_pieces(topcards, unique=True)
         n_unique_topcards = len(unique_topcards)
@@ -1291,16 +1293,19 @@ class SentryChoices(Decision):
         # Discarding one and leaving the other on top; or,
         # Leaving both on top but swapping their positions.
         if (n_unique_topcards == 2):
-            choices.append(Consequence(Effect(swap_top_cards_of_deck,
+            non_null_choices = []
+            non_null_choices.append(Consequence(Effect(swap_top_cards_of_deck,
                                               actor=actor,
                                               topcards=unique_topcards)))
             index_permutations = [(0, 1), (1, 0)]
             for index_permutation in index_permutations:
                 trash_index, discard_index = index_permutation
-                choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK),
+                non_null_choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK),
                                            Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
-                choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK)))
-                choices.append(Consequence(Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
+                non_null_choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK)))
+                non_null_choices.append(Consequence(Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
+            non_null_choices.sort(lambda c: (repr(c.effects[0].kwargs['piece'])))
+            choices.extend(non_null_choices)
 
         # QoL: Sort the order choices are displayed by number of cards involved.
         choices.sort(key=lambda c: len(c.effects))
