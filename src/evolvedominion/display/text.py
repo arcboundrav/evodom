@@ -425,7 +425,7 @@ def represent_effect(effect, idx=0):
         kwargs_string = "a card into their hand"
     # Case: First person perspective, show which cards are being
     #       swapped by Sentry.
-    elif (not(idx) and (funcname == "swap_top_cards_of_deck")
+    elif (not(idx) and (funcname == "swap_top_cards_of_deck")):
         topcards = effect.kwargs['topcards']
         kwargs_string = "{} to be the top card instead of {}".format(topcards[1],
                                                                      topcards[0])
