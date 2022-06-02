@@ -1213,6 +1213,7 @@ class LibraryTeardown(Subprocess):
     """ Discard any actions set aside during the Library Process. """
     __slots__ = tuple()
     def generate_choices(self, state, actor):
+        print("DEBUG | len(actor.HAND): {}".format(len(actor.HAND)))
         if not(actor.ASIDE):
             return [NullOption(actor)]
         return [Consequence(Effect(discard_aside, actor=actor))]
