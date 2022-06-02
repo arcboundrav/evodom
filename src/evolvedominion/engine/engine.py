@@ -1304,7 +1304,7 @@ class SentryChoices(Decision):
                                            Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
                 non_null_choices.append(Consequence(Effect(trash, actor=actor, piece=topcards[trash_index], source=actor.DECK)))
                 non_null_choices.append(Consequence(Effect(discard, actor=actor, piece=topcards[discard_index], source=actor.DECK)))
-            non_null_choices.sort(lambda c: (repr(c.effects[0].kwargs['piece'])))
+            non_null_choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
             choices.extend(non_null_choices)
 
         # QoL: Sort the order choices are displayed by number of cards involved.
