@@ -111,7 +111,7 @@ VERBS = {
     'topdeck':["topdeck", "topdecks"],
     'put':["draw", "puts"],
     'set_aside':["set aside", "sets aside"],
-    'swap_top_cards_of_deck':["reverse the order of the top two cards if your deck",
+    'swap_top_cards_of_deck':["swap",
                               "reverses the order of the top two cards of their deck"],
     'resolve_effects':["replay", "replays"],
     'resolve':["resolve", "resolves"],
@@ -423,6 +423,13 @@ def represent_effect(effect, idx=0):
     # Case: Third person perspective, don't show drawn cards.
     if (idx and (funcname == "put")):
         kwargs_string = "a card into their hand"
+    # Case: First person perspective, show which cards are being
+    #       swapped by Sentry.
+    elif (not(idx) and (funcname == "swap_top_cards_of_deck")
+        topcards = effect.kwargs['topcards']
+        kwargs_string = "{} to be the top card instead of {}".format(topcards[1],
+                                                                     topcards[0])
+    # Case: Default use.
     else:
         kwargs_string = represent_effect_kwargs(effect.kwargs)
     if kwargs_string:

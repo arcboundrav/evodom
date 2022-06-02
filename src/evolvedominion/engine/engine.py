@@ -187,7 +187,7 @@ def draw(state, actor, n):
         actor.peek(actor.HAND[-true_n:])
 
 
-def swap_top_cards_of_deck(state, actor):
+def swap_top_cards_of_deck(state, actor, topcards):
     """
     Used by Sentry when there are at least two cards
     in actor's Deck, the top two cards have different
@@ -1290,7 +1290,9 @@ class SentryChoices(Decision):
         # Discarding one and leaving the other on top; or,
         # Leaving both on top but swapping their positions.
         if (n_unique_topcards == 2):
-            choices.append(Consequence(Effect(swap_top_cards_of_deck, actor=actor)))
+            choices.append(Consequence(Effect(swap_top_cards_of_deck,
+                                              actor=actor,
+                                              topcards=unique_topcards)))
             index_permutations = [(0, 1), (1, 0)]
             for index_permutation in index_permutations:
                 trash_index, discard_index = index_permutation
