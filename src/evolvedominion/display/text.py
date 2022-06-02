@@ -100,8 +100,8 @@ VERBS = {
     'play_treasures':["play", "plays"],
     'discard':["discard", "discards"],
     'discard_pieces':["discard", "discards"],
-    'discard_aside':["discard the cards you set aside earlier.",
-                     "discards the cards they set aside earlier."],
+    'discard_aside':["discard the cards you set aside earlier",
+                     "discards the cards they set aside earlier"],
     'reveal':["reveal", "reveals"],
     'reveal_pieces':["reveal", "reveals"],
     'trash':["trash", "trashes"],
@@ -109,7 +109,7 @@ VERBS = {
     'draw':["draw", "draws"],
     'do_nothing':["do nothing", "does nothing"],
     'topdeck':["topdeck", "topdecks"],
-    'put':["draw", "draws"],
+    'put':["draw", "puts"],
     'set_aside':["set aside", "sets aside"],
     'swap_top_two_cards':["swap the top two cards", "swaps the top two cards"],
     'resolve_effects':["replay", "replays"],
@@ -421,7 +421,7 @@ def represent_effect(effect, idx=0):
     verb_string = '{}'.format(VERBS[funcname][idx])
     # Case: Third person perspective, don't show drawn cards.
     if (idx and (funcname == "put")):
-        kwargs_string = "a card"
+        kwargs_string = "a card into their hand"
     else:
         kwargs_string = represent_effect_kwargs(effect.kwargs)
     if kwargs_string:
