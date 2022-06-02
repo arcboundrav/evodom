@@ -1281,6 +1281,7 @@ class SentryChoices(Decision):
             for topcard in topcards:
                 consequence.add(Effect(function, actor=actor, piece=topcard, source=actor.DECK))
             choices.append(consequence)
+        choices.sort(key=lambda c: (repr(c.effects[0].kwargs['piece'])))
 
         unique_topcards = get_pieces(topcards, unique=True)
         n_unique_topcards = len(unique_topcards)
