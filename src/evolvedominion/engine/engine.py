@@ -263,7 +263,8 @@ def discard_pieces(state, actor, pieces, source=None):
     actor.DISCARD.extend(to_discard)
 
 
-def discard_zone(state, actor, source):
+def discard_aside(state, actor):
+    source = actor.ASIDE
     actor.DISCARD.extend(source)
     source.clear()
 
@@ -1214,7 +1215,7 @@ class LibraryTeardown(Subprocess):
     def generate_choices(self, state, actor):
         if not(actor.ASIDE):
             return [NullOption(actor)]
-        return [Consequence(Effect(discard_zone, actor=actor, source=actor.ASIDE))]
+        return [Consequence(Effect(discard_aside, actor=actor))]
 
 
 class LibraryProcess(Process):
