@@ -2784,8 +2784,8 @@ def test_sentry_choices():
 
     # NullOption means leaving it on top.
     assert isinstance(choices[0], NullOption)
-    trash_choice = choices[1]
-    discard_choice = choices[2]
+    trash_choice = choices[2]
+    discard_choice = choices[1]
 
     # Trashing it.
     zone_data_t0 = extract_zone_data(state)
@@ -2821,7 +2821,7 @@ def test_sentry_choices():
     assert isinstance(choices[0], NullOption)
 
     # Test swapping their positions.
-    swap_choice = choices[3]
+    swap_choice = choices[1]
     effects = swap_choice.effects[0]
     assert effects.function.__name__ == "swap_top_cards_of_deck"
 
