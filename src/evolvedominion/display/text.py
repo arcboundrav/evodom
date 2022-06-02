@@ -417,8 +417,13 @@ def represent_effect_kwargs(kwargs):
 
 
 def represent_effect(effect, idx=0):
-    verb_string = '{}'.format(VERBS[effect.function.__name__][idx])
-    kwargs_string = represent_effect_kwargs(effect.kwargs)
+    funcname = effect.function.__name__
+    verb_string = '{}'.format(VERBS[funcname][idx])
+    # Case: Third person perspective, don't show drawn cards.
+    if (idx and (funcname == "put")):
+        kwargs_string = "a card"
+    else:
+        kwargs_string = represent_effect_kwargs(effect.kwargs)
     if kwargs_string:
         return "{} {}".format(verb_string, kwargs_string)
     return verb_string
