@@ -1357,11 +1357,11 @@ class ArtisanChoices(Decision):
                 for placeable in placeables:
                     choices.append(Acquisition(Effect(gain, actor=actor, piece=gainable, destination=actor.HAND),
                                                Effect(topdeck, actor=actor, piece=placeable, source=actor.HAND)))
-                    # Case: Gaining a Piece with a novel type relative to Pieces in Hand
-                    #       implies the option to place a Piece of that type has not yet
-                    #       been generated (otherwise it will have been, so avoid duplication).
-                    if (gainable_toi not in placeable_tois):
-                        choices.append(Acquisition(Effect(gain, actor=actor, piece=gainable, destination=actor.HAND),
-                                                   Effect(topdeck, actor=actor, piece=gainable, source=actor.HAND)))
+                # Case: Gaining a Piece with a novel type relative to Pieces in Hand
+                #       implies the option to place a Piece of that type has not yet
+                #       been generated (otherwise it will have been, so avoid duplication).
+                if (gainable_toi not in placeable_tois):
+                    choices.append(Acquisition(Effect(gain, actor=actor, piece=gainable, destination=actor.HAND),
+                                               Effect(topdeck, actor=actor, piece=gainable, source=actor.HAND)))
 
         return choices
