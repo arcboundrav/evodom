@@ -73,11 +73,7 @@ from evolvedominion.algorithm.evolve import (
 from evolvedominion.agents.player import Player, EchoPlayer
 from evolvedominion.agents.strategy import RandomStrategy, EchoRandomStrategy, Strategy, EchoStrategy
 from evolvedominion.display.echo import EchoSession
-from evolvedominion.engine.session import (
-    _DEFAULT_KINGDOM,
-    _ANOTHER_KINGDOM,
-    Session,
-)
+from evolvedominion.engine.session import _DEFAULT_KINGDOM, Session
 
 
 _VICTORY_AND_TREASURE = [
