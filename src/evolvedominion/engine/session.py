@@ -52,32 +52,6 @@ _DEFAULT_KINGDOM = [
     Mine,
 ]
 
-_ANOTHER_KINGDOM = [
-    Chapel,
-    Harbinger,
-    Vassal,
-    Bureaucrat,
-    Gardens,
-    Moneylender,
-    Poacher,
-    ThroneRoom,
-    Bandit,
-    CouncilRoom,
-]
-
-_ANOTHER_KINGDOM2 = [
-    Poacher,
-    ThroneRoom,
-    Bandit,
-    CouncilRoom,
-    Festival,
-    Laboratory,
-    Library,
-    Sentry,
-    Witch,
-    Artisan,
-]
-
 
 class Session:
     """
