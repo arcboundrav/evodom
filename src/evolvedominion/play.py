@@ -11,6 +11,7 @@ from evolvedominion.agents.strategy import (
 from evolvedominion.display.echo import EchoSession
 from evolvedominion.display.text import newline, summarize_session
 
+
 def _load_winning_phenotypes(simname):
     simulation_data = DATA_MANAGER.load(simname)
     if ((simulation_data is None) or not(simulation_data)):
@@ -50,8 +51,6 @@ def play_game(simname):
     winners = _load_winning_phenotypes(simname)
     if (winners is not None):
         session = _create_session(winners)
-    else:
-        session = _get_random_opponent_session()
         try:
             session.play()
         except KeyboardInterrupt:
