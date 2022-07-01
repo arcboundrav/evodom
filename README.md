@@ -61,6 +61,7 @@ a key. Valid keys are non-empty alphanumeric strings. Data is saved in a
 platform specific location—e.g., `~/.local/share/evolvedominion/` on Ubuntu.
 Entering the following in the Python interpreter will print the path on your
 machine:
+
     >>> import platformdirs
     >>> platformdirs.PlatformDirs().user_data_dir
 
