@@ -283,9 +283,9 @@ The minimalist approach of representing preferences using a single distribution 
 with a major tradeoff between consistency and expressivity.
 
 By expressivity I mean the ability to encode an order of relative preferences
-between 2 <= n <= N distinct options.
+between `2 <= n <= N` distinct options.
 
-By consistency I mean the expected number of inversions in a sequence of N
+By consistency I mean the expected number of inversions in a sequence of `N`
 samples without replacement from the distribution, relative to a descending
 sort of the sample space's elements according to the magnitude of their
 individual probabilities.
@@ -299,7 +299,7 @@ consistent it becomes in terms of producing the expressed order of preferences.
 
 This observation was one of the motivations for replacing the Dirichlet model
 space with a much smaller set of distributions which encode relative
-preferences between 3 <= n <= 5 options.
+preferences between `3 <= n <= 5` options.
 
 Yet, largely due to how well the game is balanced and how simple it is, the
 minimalist approach works in practice. Specifically:
@@ -310,7 +310,7 @@ minimalist approach works in practice. Specifically:
 2) An Agent is more likely to have a relatively low number of Coins,
    so that selection rarely involves all of the distinct Card types.
 
-3) If cost(A) > cost(B), it is usually correct to acquire A instead
+3) If `cost(A) > cost(B)`, it is usually correct to acquire A instead
    of B when both are available.
 
 4) Penalizing Curse preferences and early game Victory Card preferences
