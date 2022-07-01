@@ -99,14 +99,14 @@ with probability A[i].
 
 There are C = 17 types of Cards. We label each type by assigning
 it an integer in the closed interval [0, 16], then use that
-interval as our sample space, which we call I. We store the mapping
-from label to Card type implicitly in an array of Card types, T,
-where T[i] is the Card type with label i.
+interval as our sample space, which we call *I*. We store the mapping
+from label to Card type implicitly in an array of Card types, *T*,
+where *T*[*i*] is the Card type with label *i*.
 
 We can represent our preferences for certain types of Cards with
-a discrete probability distribution over I, which we call P. To
-sample a Card type, we sample a label i in I according to P, then
-access the corresponding Card type indexed by i in T.
+a discrete probability distribution over *I*, which we call *P*. To
+sample a Card type, we sample a label *i* in *I* according to *P*, then
+access the corresponding Card type indexed by *i* in *T*.
 
 
 #### Preferences
@@ -134,9 +134,9 @@ frequently than others. To represent preferences for certain Card
 types relative to others it is therefore necessary for P to be a
 non-uniform discrete probability distribution over I.
 
-Which discrete probability distributions the genetic algorithm
-considers when evolving preferences is discussed in the Results
-Section.
+The space of discrete probability distributions searched by the genetic
+algorithm is described [here](#model-spaces).
+
 
 
 #### Normalization
@@ -193,22 +193,19 @@ is epsilon---a small non-zero value---rather than zero.
 
 #### Minimalist Strategies
 
-The Decisions Section discusses how each Game can be decomposed
-into a series of selections. It follows that equipping a Strategy
-with the ability to make selections is sufficient to permit it to
-play a Game.
+Each Turn can be [decomposed into a series of selections](#decisions-consequences-and-effects). It follows that
+equipping a Strategy with the ability to make selections is sufficient to
+permit it to play a Game.
 
 Usually a Strategy will make a selection using the procedure outlined
 above. Each of the probability distributions which inform selection
-represent a preference for acquiring certain Card types. How these
-are generated and which one informs which selection is discussed in
-the Results Section.
+represent a [preference](#preferences) for acquiring certain Card types.
 
 In special cases, a Strategy will make a selection using a custom
 procedure which still relies on sampling informed by evolved
 preferences. These custom procedures---and, the naive heuristic
 that a Strategy may deploy when the game is nearly over---are
-discussed in the Heuristics Section.
+discussed [here](#heuristics).
 
 
 ### Explorations
@@ -247,7 +244,7 @@ almost exclusively evolved extremely biased distributions. Instead
 of reverting to hard-coded sequencing heuristics, the current system
 remains to support extensions to Action sequencing and as a proof of
 concept of the viability of strict total order policies. Action
-selection is discussed further in the Limitations Section.
+selection is discussed further [here](#limitations).
 
 
 ##### Preferences
@@ -301,23 +298,22 @@ preferences between 3 <= n <= 5 options.
 Yet, largely due to how well the game is balanced and how simple it is, the
 minimalist approach works in practice. Specifically:
 
-    1) Which Cards are available for Acquisition usually varies in relation
-       to how many Coins an Agent has.
+1) Which Cards are available for Acquisition usually varies in relation
+   to how many Coins an Agent has.
 
-    2) An Agent is more likely to have a relatively low number of Coins,
-       so that selection rarely involves all of the distinct Card types.
+2) An Agent is more likely to have a relatively low number of Coins,
+   so that selection rarely involves all of the distinct Card types.
 
-    3) If cost(A) > cost(B), it is usually correct to acquire A instead
-       of B when both are available.
+3) If cost(A) > cost(B), it is usually correct to acquire A instead
+   of B when both are available.
 
-    4) Penalizing Curse preferences and early game Victory Card preferences
-       further reduces the expected number of options during the early game.
+4) Penalizing Curse preferences and early game Victory Card preferences
+   further reduces the expected number of options during the early game.
 
-    5) The [willingness to pass during the Buy Phase](#willingness-to-pass-rather-than-buy) discussed in the Heuristics
-       Section prevents automatic Acquisition of the cheapest and least useful
-       Cards---which are precisely those most often among available options.
-       Note: Preferences for such Cards can still evolve if they are integral
-             to a competent Strategy.
+5) The [willingness to pass during the Buy Phase](#willingness-to-pass-rather-than-buy) prevents automatic Acquisition of the cheapest and least useful
+   Cards---which are precisely those most often among available options.
+   Note: Preferences for such Cards can still evolve if they are integral
+         to a competent Strategy.
 
 
 One upshot is that distributions which heavily weight expensive cards relative to
@@ -592,7 +588,7 @@ use this generalized representation.
 The switch index is the turn after which Strategies swap to using
 their evolved end game preferences rather than their evolved
 early game preferences. How its current value was arrived at is
-discussed in the Results section.
+discussed [here](#switch-index).
 
 Instead of a simple turn ordinal rule of thumb, Strategies might
 evolve an encoder to represent the State, and swap strategies in
