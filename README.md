@@ -310,8 +310,8 @@ minimalist approach works in practice. Specifically:
 2) An Agent is more likely to have a relatively low number of Coins,
    so that selection rarely involves all of the distinct Card types.
 
-3) If `cost(A) > cost(B)`, it is usually correct to acquire A instead
-   of B when both are available.
+3) If `cost(A) > cost(B)`, it is usually correct to acquire `A` instead
+   of `B` when both are available.
 
 4) Penalizing Curse preferences and early game Victory Card preferences
    further reduces the expected number of options during the early game.
@@ -456,9 +456,9 @@ in general.
 
 #### Endgame Preferences
 
-Strategies have two sets of preferences: one for the early game, and one for the end game.
+Strategies have two sets of preferences: one for the early game, and one for the endgame.
 When the turn with ordinal equal to a Genome's switch index is reached, the associated
-Strategy starts using the end game preferences for the remainder of the game.
+Strategy starts using the endgame preferences for the remainder of the game.
 
 
 #### Revealing Moat to Defend Against Attacks
@@ -592,7 +592,7 @@ use this generalized representation.
 ### Switch Index
 
 The switch index is the turn after which Strategies swap to using
-their evolved end game preferences rather than their evolved
+their evolved endgame preferences rather than their evolved
 early game preferences. How its current value was arrived at is
 discussed [here](#switch-index).
 
