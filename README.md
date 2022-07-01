@@ -99,14 +99,14 @@ with probability A[i].
 
 There are C = 17 types of Cards. We label each type by assigning
 it an integer in the closed interval [0, 16], then use that
-interval as our sample space, which we call *I*. We store the mapping
-from label to Card type implicitly in an array of Card types, *T*,
-where *T*[*i*] is the Card type with label *i*.
+interval as our sample space, which we call `I`. We store the mapping
+from label to Card type implicitly in an array of Card types, `T`,
+where `T[i]` is the Card type with label `i`.
 
 We can represent our preferences for certain types of Cards with
-a discrete probability distribution over *I*, which we call *P*. To
-sample a Card type, we sample a label *i* in *I* according to *P*, then
-access the corresponding Card type indexed by *i* in *T*.
+a discrete probability distribution over `I`, which we call `P`. To
+sample a Card type, we sample a label `i` in `I` according to `P`, then
+access the corresponding Card type indexed by `i` in `T`.
 
 
 #### Preferences
