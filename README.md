@@ -37,3 +37,38 @@ python -m pip install -r requirements_dev.txt
 ```
 Updating evolvedominion to the latest release can be done
 by navigating to the repository and using `git pull`
+
+## Example
+
+After installation evolvedominion can be run from the command line.
+
+### Evolving Strategies
+
+Strategies need to be evolved prior to being able to play against them.
+The following command will run the genetic algorithm for 100 generations
+with a population size of 128. The results will be stored using the key
+"demo". This key will be used later to play against the best ones.
+```
+evodom evolve demo --ngen 100 --nstrat 128
+```
+Note: The number of Strategies per generation must be in the closed
+interval [8, 512] and be evenly divisible by 4. The algorithm is capped at 9999
+generations per run. Experience shows that a few hundred generations is more
+than adequate to evolve competent Strategies.
+
+Note: Passing the -o flag permits the overwriting of past results to reuse
+a key. Valid keys are non-empty alphanumeric strings.
+
+
+### Playing Against Evolved Strategies
+
+The following command will launch a text-based game against the three
+strongest Strategies evolved above:
+```
+evodom play demo
+```
+
+### Interface
+
+Type '?' at the prompt to list the available commands.
+Exit the game early at any time with CTRL+C.
