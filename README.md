@@ -1,5 +1,5 @@
 # evolvedominion
-A text-based interface for evolving---and, playing against---strategies for Dominion.
+A text-based interface for evolving—and, playing against—strategies for Dominion.
 
 This project was created as a proof of concept that minimally sophisticated agents
 which rely only on local information could attain competent play through the use
@@ -112,7 +112,7 @@ access the corresponding Card type indexed by `i` in `T`.
 #### Preferences
 
 Consider the case where in the long run we'd like to exhibit no
-bias toward any type of Card---i.e., we prefer each type of Card
+bias toward any type of Card—i.e., we prefer each type of Card
 equally.
 
 Then `P` is a uniform distribution over `I` where every element of `P` is
@@ -142,14 +142,14 @@ algorithm is described [here](#model-spaces).
 #### Normalization
 
 Let `S` be a non-empty subset of `I` with size `M`. If `S` is a proper
-subset of `I`---i.e., `1 <= M < |C|`---then the default selection procedure
+subset of `I`—i.e., `1 <= M < |C|`—then the default selection procedure
 must be adapted. From our base preferences `P`, we derive new preferences,
 `P(S)`, which represent relative preferences for the elements of `I` which
 occur in `S`. This procedure is called normalization.
 
 Example
 
-`S = [0, 1]`---i.e, only the first `M = 2` types of Cards in `T` are available
+`S = [0, 1]`—i.e, only the first `M = 2` types of Cards in `T` are available
 for selection.
 
 Consider base preferences `P` where `P[0] == 0.05`, `P[1] == 0.15`, and `P[j]
@@ -173,7 +173,7 @@ probability distribution.
     P(S) := P(S) / E     == [0.25, 0.75]
 
 To select a Card type from the restricted set of available options, follow
-the default procedure---but replace `I` with `S` and replace `P` with `P(S)`.
+the default procedure—but replace `I` with `S` and replace `P` with `P(S)`.
 That is, roll the re-weighted die to select from amongst only the available
 options. Normalization means that `P(S)` will preserve the relative preferences
 encoded in `P` between the available Card types.
@@ -188,7 +188,7 @@ Constraint 1:
     0 < epsilon <= P[i] < (1 - ((N - 1) * epsilon))
 
 In other words, the minimum weight for each Card type in any distribution
-is epsilon---a small non-zero value---rather than zero.
+is epsilon—a small non-zero value—rather than zero.
 
 
 #### Minimalist Strategies
@@ -203,8 +203,8 @@ represent a [preference](#preferences) for acquiring certain Card types.
 
 In special cases, a Strategy will make a selection using a custom
 procedure which still relies on sampling informed by evolved
-preferences. These custom procedures---and, the naive heuristic
-that a Strategy may deploy when the game is nearly over---are
+preferences. These custom procedures—and, the naive heuristic
+that a Strategy may deploy when the game is nearly over—are
 discussed [here](#heuristics).
 
 
@@ -244,7 +244,7 @@ almost exclusively evolved extremely biased distributions. Instead
 of reverting to hard-coded sequencing heuristics, the current system
 remains to support extensions to Action sequencing and as a proof of
 concept of the viability of strict total order policies. Action
-selection is discussed further [here](#limitations).
+selection is discussed further [here](#action-class-preferences).
 
 
 ##### Preferences
@@ -311,7 +311,7 @@ minimalist approach works in practice. Specifically:
    further reduces the expected number of options during the early game.
 
 5) The [willingness to pass during the Buy Phase](#willingness-to-pass-rather-than-buy) prevents automatic Acquisition of the cheapest and least useful
-   Cards---which are precisely those most often among available options.
+   Cards—which are precisely those most often among available options.
    Note: Preferences for such Cards can still evolve if they are integral
          to a competent Strategy.
 
@@ -363,7 +363,7 @@ Phase, or across both is another blindspot with the same origin.
 
 Usually, which Action to play is selected using evolved preferences
 over the action class of a Card type. Each Card type has an associated
-action class and each Strategy has corresponding preferences---a
+action class and each Strategy has corresponding preferences—a
 distribution over the distinct action classes.
 
 An action class classifies Card types with respect to the nature of their
@@ -384,7 +384,7 @@ is determined by: the running total of how many Action plays the Agent
 is permitted; and, whether any Action cards are in the Agent's hand.
 An Agent starts each Action Phase with a single Action play permitted.
 
-Experimentation and domain knowledge both indicate that---usually---an
+Experimentation and domain knowledge both indicate that—usually—an
 Agent should play as many Actions during each Action Phase as possible.
 With only this goal in mind, sequencing plays requires a consideration
 of both terminality and card draw.
@@ -407,7 +407,7 @@ emulates sequencing Action plays according to a strict total order policy
 over action classes of the sort just described.
 
 Although the distributions are identical, the labeling of M each Strategy
-uses---i.e., which action class maps to X, Y, and Z, respectively---is
+uses—i.e., which action class maps to X, Y, and Z, respectively—is
 subject to natural selection. Of interest is the labeling which corresponds
 to the following policy which often leads to maximizing the number of Action
 plays per Action Phase:
@@ -442,8 +442,8 @@ is performed automatically.
 
 The genetic algorithm evaluates each Strategy's fitness using its performance in an
 Elimination Tournament relative to its peers. Then Strategies which exhibit a
-preference for cards which modify Victory Points in the early game---or, Curses in the
-endgame---are penalized. This results in a re-ranking of Strategy fitness that biases
+preference for cards which modify Victory Points in the early game—or, Curses in the
+endgame—are penalized. This results in a re-ranking of Strategy fitness that biases
 the algorithm's search away from early Victory Card acquisition and away from Curses
 in general.
 
@@ -468,7 +468,7 @@ to any Attack in the Base Set if able.
 
 #### Willingness to Pass Rather than Buy
 
-The method of Purchase selection samples up to N_PURCHASE_PREFERENCES=3 distinct Piece
+The method of Purchase selection samples up to `N_PURCHASE_PREFERENCES := 3` distinct Piece
 types according to a Strategy's evolved preferences. Each time a distinct Piece is
 sampled, any available Purchases are searched in hopes of finding one which will
 cause the Agent to gain the sampled Piece. If it is found, it is selected. If no
@@ -531,8 +531,8 @@ meta-meta selection passes the Action Phase rather than guarantee itself a loss.
 Support all decisions arising in the Base Set, not just those
 generated by the First Game kingdom cards.
 
-In particular, inform deck composition decisions---e.g.,
-trashing with Chapel---by deriving a deck evaluation function
+In particular, inform deck composition decisions—e.g.,
+trashing with Chapel—by deriving a deck evaluation function
 from evolved preferences.  Currently, choosing between changes
 to one's set of cards which involve different numbers of Pieces
 is not supported.
@@ -543,7 +543,7 @@ It will also open the possibility of considering combinations of
 Purchases during the Buy Phase.
 
 Determine the minimal addition which will lead to competent
-deck sequencing---e.g., which cards to topdeck with Sentry.
+deck sequencing—e.g., which cards to topdeck with Sentry.
 
 
 ### Engine
@@ -603,7 +603,7 @@ Each Phase is a loop with its own termination condition and a method
 for generating the set of possible moves the current player can
 make, given the rules and the State. At the start of each iteration,
 the set of possible moves is generated, and the current player selects
-which one to make---then makes it.
+which one to make—then makes it.
 
 For example, in the Action Phase, the termination condition is a
 conjunction: the current player has not yet elected to pass the
@@ -613,7 +613,7 @@ the set of possible moves includes: passing the Action Phase; and,
 playing one of the distinct types of Actions in Hand, if any exist.
 
 When an Agent makes a move, they alter the State. A collection of
-distinct changes to the state is a Consequence---and, each component
+distinct changes to the state is a Consequence—and, each component
 in such a collection is an Effect. To make a move is to select a
 Consequence and then resolve its Effects. The logic which governs
 the generation of a set of moves is a Decision.
@@ -633,7 +633,7 @@ action plays and will move the Piece from the player's hand to their
 play area.
 
 Additionally, if the Piece has a Consequence containing Effects to
-resolve automatically when it is played---those Effects are resolved;
+resolve automatically when it is played—those Effects are resolved;
 and, finally, if the Piece has instructions to follow, then those
 instructions are followed.
 
