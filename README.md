@@ -313,7 +313,7 @@ minimalist approach works in practice. Specifically:
     4) Penalizing Curse preferences and early game Victory Card preferences
        further reduces the expected number of options during the early game.
 
-    5) The willingness to pass during the Buy Phase discussed in the Heuristics
+    5) The [willingness to pass during the Buy Phase](#willingness-to-pass-rather-than-buy) discussed in the Heuristics
        Section prevents automatic Acquisition of the cheapest and least useful
        Cards---which are precisely those most often among available options.
        Note: Preferences for such Cards can still evolve if they are integral
@@ -399,7 +399,7 @@ selection based on the action classes of available options. First, sort
 the Actions by their action class according to H; then, select an Action
 with the greatest action class according to H.
 
-For example, let M := {X, Y, Z}. One choice for H, Z > X > Y, represents
+For example, let `M := {X, Y, Z}`. One choice for H, `Z > X > Y`, represents
 the policy, "Play an Action with action class Z if possible, otherwise
 play an Action with action class X if possible, otherwise play an Action
 with action class Y".
