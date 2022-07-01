@@ -91,14 +91,14 @@ probability distribution over the sample space:
     (Constraint 2) The sum of the C elements of A is 1.
 
 Label each outcome in the sample space by assigning it an integer in the closed
-interval [0, C-1]. Then the outcome with label i will be sampled according to A
-with probability A[i].
+interval `[0, C-1]`. Then the outcome with label `i` will be sampled according to `A`
+with probability `A[i]`.
 
 
 #### Applying the Basics
 
-There are C = 17 types of Cards. We label each type by assigning
-it an integer in the closed interval [0, 16], then use that
+There are `C = 17` types of Cards. We label each type by assigning
+it an integer in the closed interval `[0, 16]`, then use that
 interval as our sample space, which we call `I`. We store the mapping
 from label to Card type implicitly in an array of Card types, `T`,
 where `T[i]` is the Card type with label `i`.
@@ -115,24 +115,24 @@ Consider the case where in the long run we'd like to exhibit no
 bias toward any type of Card---i.e., we prefer each type of Card
 equally.
 
-Then P is a uniform distribution over I where every element of P is
-equal to 1 / C. In the limit of sampling N >> C Card types according
-to P, the number of times each Card type is sampled will tend to the
-same value, N / C.
+Then `P` is a uniform distribution over `I` where every element of `P` is
+equal to `1 / C`. In the limit of sampling `N >> C` Card types according
+to `P`, the number of times each Card type is sampled will tend to the
+same value, `N / C`.
 
-A uniform probability distribution over I is conceptually equivalent
+A uniform probability distribution over `I` is conceptually equivalent
 to a fair die with 17 faces where each face is labelled by a distinct
-integer in I.
+integer in `I`.
 
 The default selection procedure is then analogous to rolling such a
-die, noting the index i on the face that comes up, then returning the
-Card type T[i].
+die, noting the index `i` on the face that comes up, then returning the
+Card type `T[i]`.
 
 In contrast to a fair die, over many rolls the uneven distribution
 of weight inside a loaded die causes certain outcomes to occur more
 frequently than others. To represent preferences for certain Card
-types relative to others it is therefore necessary for P to be a
-non-uniform discrete probability distribution over I.
+types relative to others it is therefore necessary for `P` to be a
+non-uniform discrete probability distribution over `I`.
 
 The space of discrete probability distributions searched by the genetic
 algorithm is described [here](#model-spaces).
@@ -141,46 +141,46 @@ algorithm is described [here](#model-spaces).
 
 #### Normalization
 
-Let S be a non-empty subset of I with size M. If S is a proper
-subset of I---i.e., 1 <= M < |C|---then the default selection procedure
-must be adapted. From our base preferences P, we derive new preferences,
-P(S), which represent relative preferences for the elements of I which
-occur in S. This procedure is called normalization.
+Let `S` be a non-empty subset of `I` with size `M`. If `S` is a proper
+subset of `I`---i.e., `1 <= M < |C|`---then the default selection procedure
+must be adapted. From our base preferences `P`, we derive new preferences,
+`P(S)`, which represent relative preferences for the elements of `I` which
+occur in `S`. This procedure is called normalization.
 
 Example
 
-S = [0, 1]---i.e, only the first M = 2 types of Cards in T are available
+`S = [0, 1]`---i.e, only the first `M = 2` types of Cards in `T` are available
 for selection.
 
-Consider base preferences P where P[0] == 0.05, P[1] == 0.15, and P[j]
-(1 < j < C) obey the constraints qualifying P as a probability distribution,
+Consider base preferences `P` where `P[0] == 0.05`, `P[1] == 0.15`, and `P[j]
+(1 < j < C)` obey the constraints qualifying `P` as a probability distribution,
 but are otherwise irrelevant.
 
-P(S) will represent the base preferences adapted to the restricted set of
-available options. To find P(S):
+`P(S)` will represent the base preferences adapted to the restricted set of
+available options. To find `P(S)`:
 
-Start with the subarray of P indexed by S
+Start with the subarray of `P` indexed by `S`
 
     P(S) := [P[0], P[1]] == [0.05, 0.15]
 
-Compute its sum, E
+Compute its sum, `E`
 
     E    := sum(P(S))    == (0.05 + 0.15) == 0.2
 
-Divide each element of P(S) by E to transform it into a valid discrete
+Divide each element of `P(S)` by `E` to transform it into a valid discrete
 probability distribution.
 
     P(S) := P(S) / E     == [0.25, 0.75]
 
 To select a Card type from the restricted set of available options, follow
-the default procedure---but replace I with S and replace P with P(S).
+the default procedure---but replace `I` with `S` and replace `P` with `P(S)`.
 That is, roll the re-weighted die to select from amongst only the available
-options. Normalization means that P(S) will preserve the relative preferences
-encoded in P between the available Card types.
+options. Normalization means that `P(S)` will preserve the relative preferences
+encoded in `P` between the available Card types.
 
 In this example, during the default selection procedure when every option is
-available, T[1] is three times more likely to be selected than T[0]. After
-normalization, T[1] remains three times more likely to be selected than T[0].
+available, `T[1]` is three times more likely to be selected than `T[0]`. After
+normalization, `T[1]` remains three times more likely to be selected than `T[0]`.
 
 This procedure can fail unless the distributions obey a stronger version of
 Constraint 1:
