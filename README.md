@@ -89,12 +89,12 @@ Key concepts and implementation details are elaborated upon below.
 
 #### The Basics
 
-Start with a set of mutually exclusive outcomes of size C called a sample space.
-Any array A of size C satisfying the following constraints represents a discrete
+Start with a set of mutually exclusive outcomes of size `C` called a sample space.
+An array `A` of size `C` satisfying the following constraints represents a discrete
 probability distribution over the sample space:
 
-    (Constraint 1) Each element A[i] falls between 0 and 1; and,
-    (Constraint 2) The sum of the C elements of A is 1.
+    Constraint 1: Each element A[i] falls between 0 and 1; and,
+    Constraint 2: The sum of the C elements of A is 1.
 
 Label each outcome in the sample space by assigning it an integer in the closed
 interval `[0, C-1]`. Then the outcome with label `i` will be sampled according to `A`
