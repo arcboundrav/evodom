@@ -1,4 +1,6 @@
 # evolvedominion
+![](image.png)
+
 A text-based interface for evolving—and, playing against—strategies for Dominion.
 
 This project was created as a proof of concept that minimally sophisticated agents
